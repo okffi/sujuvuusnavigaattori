@@ -299,3 +299,8 @@ ul {
     margin: 0;
     padding: 0;
 }
+
+.ui-header div.ui-slider-switch {
+ width: 8.5em;
+}
+

@@ -135,7 +135,6 @@ $('#map-page').bind 'pageshow', (e, data) ->
 $('#map-page').on 'pagebeforehide', (e, o) ->
     if o.nextPage.attr('id') is "front-page"
         reset_map()
-        window.ntf_srv_stopNtfService()
 
 reset_map = () ->
         if routeLayer?
@@ -982,7 +981,7 @@ BackControl = L.Control.extend
 L.control.zoom().addTo(map)
 
 TRANSFORM_MAP = [
-    {source: {lat: 53.477342, lng: -2.2584626}, dest: {lat: 53.477958, lng: -2.23342}}
+    {source: {lat: 60.18222, lng: 24.95098}, dest: {lat: 60.17317, lng: 24.93107}}
 ]
 
 transform_location = (point) ->
@@ -1203,22 +1202,22 @@ speak_queue = []
 
 $('#navigation-page').on 'pagebeforehide', (e, o) ->
     if o.nextPage.attr('id') is "map-page"
-    if simulation_timeoutId?
-        clearTimeout simulation_timeoutId
-        simulation_timeoutId = null
-        citynavi.set_simulation_time null
-    if positionMarker?
-        map.removeLayer positionMarker
-        map.removeLayer positionMarker2
-        positionMarker = null
-        position_point = null
-        # XXX restore latest real geolocation
-        citynavi.set_source_location null
-
-    lastLeg = null
-    currentStep = null
-    currentStepIndex = null
-    speak_queue = []
+        if simulation_timeoutId?
+            clearTimeout simulation_timeoutId
+            simulation_timeoutId = null
+            citynavi.set_simulation_time null
+        if positionMarker?
+            map.removeLayer positionMarker
+            map.removeLayer positionMarker2
+            positionMarker = null
+            position_point = null
+            # XXX restore latest real geolocation
+            citynavi.set_source_location null
+        
+        lastLeg = null
+        currentStep = null
+        currentStepIndex = null
+        speak_queue = []
 
 $('#use-speech').change () ->
     if $('#use-speech').attr('checked')
