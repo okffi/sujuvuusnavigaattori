@@ -36,6 +36,21 @@
     var flip_switch, record_on;
     flip_switch = $(this);
     record_on = flip_switch.val() === 'on';
+    $('#flip-record2').val(flip_switch.val()).slider('refresh');
+    if (record_on) {
+      console.log('recording switched to on');
+      return start_recording();
+    } else {
+      console.log('recording switched to off');
+      return stop_recording();
+    }
+  });
+
+  $('#flip-record2').on('change', function() {
+    var flip_switch, record_on;
+    flip_switch = $(this);
+    record_on = flip_switch.val() === 'on';
+    $('#flip-record').val(flip_switch.val()).slider('refresh');
     if (record_on) {
       console.log('recording switched to on');
       return start_recording();
@@ -46,6 +61,18 @@
   });
 
   $('#flip-record').on('slidecreate', function() {
+    var current_value, flip_switch, is_in;
+    flip_switch = $(this);
+    is_in = is_signed_in();
+    current_value = flip_switch.val();
+    if (is_in && current_value === 'off') {
+      return flip_switch.val('on').slider('refresh');
+    } else if ((!is_in) && current_value === 'on') {
+      return flip_switch.val('off').slider('refresh');
+    }
+  });
+
+  $('#flip-record2').on('slidecreate', function() {
     var current_value, flip_switch, is_in;
     flip_switch = $(this);
     is_in = is_signed_in();
