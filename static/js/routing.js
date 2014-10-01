@@ -1066,7 +1066,7 @@
       setView: false,
       maxZoom: 15,
       watch: true,
-      timeout: Infinity,
+      timeout: 0xFFFFFFFF,
       enableHighAccuracy: true
     });
   }
