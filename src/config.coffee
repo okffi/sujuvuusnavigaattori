@@ -77,7 +77,7 @@ defaults =
 
     icon_base_path: "static/images/"
 
-    min_zoom: 10
+    min_zoom: 5
 
     colors:
         hsl: hsl_colors
@@ -139,9 +139,9 @@ helsinki =
     cities: ["Helsinki", "Vantaa", "Espoo", "Kauniainen", "Kerava", "Sipoo", "Kirkkonummi", # names in finnish
              "Helsingfors", "Vanda", "Esbo", "Grankulla", "Kervo", "Sibbo", "Kyrkslätt"
     ] # names in swedish
-    bbox_ne: [60.653728, 25.576590]
-    bbox_sw: [59.903339, 23.692820]
-    center: [60.170833, 24.9375]
+    bbox_ne: [70.09, 31.58]
+    bbox_sw: [59.50, 19.11]
+    center: [64.795, 25.345]
     otp_base_url: "http://144.76.78.72/otp/routers/default/"
     siri_url: "http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL"
     poi_muni_id: null # XXX is this ok?
