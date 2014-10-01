@@ -42,6 +42,18 @@ start_recording = ->
 $('#flip-record').on 'change', () ->
     flip_switch = $(@)
     record_on = flip_switch.val() == 'on'
+    $('#flip-record2').val(flip_switch.val()).slider('refresh')
+    if record_on
+        console.log('recording switched to on')
+        start_recording()
+    else
+        console.log('recording switched to off')
+        stop_recording()
+
+$('#flip-record2').on 'change', () ->
+    flip_switch = $(@)
+    record_on = flip_switch.val() == 'on'
+    $('#flip-record').val(flip_switch.val()).slider('refresh')
     if record_on
         console.log('recording switched to on')
         start_recording()
@@ -51,6 +63,15 @@ $('#flip-record').on 'change', () ->
 
 # Update UI to match the state of localStorage.
 $('#flip-record').on 'slidecreate', () ->
+    flip_switch = $(@)
+    is_in = is_signed_in()
+    current_value = flip_switch.val()
+    if is_in and current_value == 'off'
+        flip_switch.val('on').slider('refresh')
+    else if (not is_in) and current_value == 'on'
+        flip_switch.val('off').slider('refresh')
+
+$('#flip-record2').on 'slidecreate', () ->
     flip_switch = $(@)
     is_in = is_signed_in()
     current_value = flip_switch.val()
