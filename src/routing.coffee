@@ -980,9 +980,7 @@ BackControl = L.Control.extend
 # Add zoom control to the map
 L.control.zoom().addTo(map)
 
-TRANSFORM_MAP = [
-    {source: {lat: 60.18222, lng: 24.95098}, dest: {lat: 60.17317, lng: 24.93107}}
-]
+TRANSFORM_MAP = []
 
 transform_location = (point) ->
     # If the point is close to known bad locations, transform them to right ones.
