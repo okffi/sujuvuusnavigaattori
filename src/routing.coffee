@@ -927,7 +927,7 @@ if not window.testem_mode
         setView: false
         maxZoom: 15
         watch: true
-        timeout: Infinity
+        timeout: 0xFFFFFFFF
         enableHighAccuracy: true
 
 create_tile_layer = (map_config) ->
