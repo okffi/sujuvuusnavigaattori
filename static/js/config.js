@@ -61,7 +61,7 @@
     recorder_login_url: recorder_base_url + "auth/login",
     recorder_trace_seq_url: recorder_base_url + "trace_seqs",
     icon_base_path: "static/images/",
-    min_zoom: 10,
+    min_zoom: 5,
     colors: {
       hsl: hsl_colors,
       google: {
@@ -131,9 +131,9 @@
     name: "Helsinki Region",
     country: "fi",
     cities: ["Helsinki", "Vantaa", "Espoo", "Kauniainen", "Kerava", "Sipoo", "Kirkkonummi", "Helsingfors", "Vanda", "Esbo", "Grankulla", "Kervo", "Sibbo", "Kyrkslätt"],
-    bbox_ne: [60.653728, 25.576590],
-    bbox_sw: [59.903339, 23.692820],
-    center: [60.170833, 24.9375],
+    bbox_ne: [70.09, 31.58],
+    bbox_sw: [59.50, 19.11],
+    center: [64.795, 25.345],
     otp_base_url: "http://144.76.78.72/otp/routers/default/",
     siri_url: "http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL",
     poi_muni_id: null,
