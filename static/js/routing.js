@@ -692,7 +692,7 @@
     for (_i = 0, _len = legs.length; _i < _len; _i++) {
       leg = legs[_i];
       _results.push((function(leg) {
-        var color, dashArray, icon, label, last_stop, marker, point, points, polyline, secondsCounter, stop, uid, _ref1, _ref2;
+        var color, dashArray, icon, label, last_stop, marker, opacity, point, points, polyline, secondsCounter, stop, uid, _ref1, _ref2;
         uid = Math.floor(Math.random() * 1000000);
         points = (function() {
           var _j, _len1, _ref1, _results1;
@@ -705,11 +705,12 @@
           return _results1;
         })();
         color = google_colors[(_ref1 = leg.routeType) != null ? _ref1 : leg.mode];
-        if (leg.routeType !== null) {
+        if (leg.transitLeg === true) {
           dashArray = null;
+          opacity = 0.4;
         } else {
           dashArray = "5,10";
-          color = "#000";
+          opacity = 0.8;
         }
         polyline = new L.Polyline(points, {
           color: color,
@@ -721,7 +722,7 @@
         polyline.addTo(routeLayer);
         polyline = new L.Polyline(points, {
           color: color,
-          opacity: 0.4,
+          opacity: opacity,
           dashArray: dashArray
         }).on('click', function(e) {
           mapfitBounds(polyline.getBounds());
@@ -1066,7 +1067,7 @@
       setView: false,
       maxZoom: 15,
       watch: true,
-      timeout: 0xFFFFFFFF,
+      timeout: 24 * 60 * 60 * 1000,
       enableHighAccuracy: true
     });
   }

@@ -19,7 +19,8 @@
   };
 
   hsl_colors = {
-    walk: '#9ab9c9',
+    walk: '#999999',
+    cycle: '#009999',
     wait: '#999999',
     1: '#007ac9',
     2: '#00985f',
@@ -67,7 +68,7 @@
       google: {
         WALK: hsl_colors.walk,
         CAR: hsl_colors.walk,
-        BICYCLE: hsl_colors.walk,
+        BICYCLE: hsl_colors.cycle,
         WAIT: hsl_colors.wait,
         0: hsl_colors[2],
         1: hsl_colors[6],
