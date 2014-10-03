@@ -304,3 +304,7 @@ ul {
  width: 8.5em;
 }
 
+.mode-front-page .ui-header .ui-title {
+    margin: 0.6em 1% 0.8em;
+}
+
