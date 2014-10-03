@@ -32,7 +32,8 @@ citynavi.set_config = (id) ->
 # Original structure from:
 # https://github.com/reitti/reittiopas/blob/90a4d5f20bed3868b5fb608ee1a1c7ce77b70ed8/web/js/utils.coffee
 hsl_colors =
-    walk: '#9ab9c9' # walking; HSL official color is too light #bee4f8
+    walk: '#999999' # walking; HSL official color is too light #bee4f8
+    cycle:'#009999'
     wait: '#999999' # waiting time at a stop
     1:    '#007ac9' # Helsinki internal bus lines
     2:    '#00985f' # Trams
@@ -84,7 +85,7 @@ defaults =
         google:
             WALK: hsl_colors.walk
             CAR: hsl_colors.walk
-            BICYCLE: hsl_colors.walk
+            BICYCLE: hsl_colors.cycle
             WAIT: hsl_colors.wait
             0: hsl_colors[2]
             1: hsl_colors[6]

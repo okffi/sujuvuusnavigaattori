@@ -600,15 +600,17 @@ render_route_layer = (itinerary, routeLayer) ->
             points = (new L.LatLng(point[0]*1e-5, point[1]*1e-5) for point in leg.legGeometry.points)
             color = google_colors[leg.routeType ? leg.mode]
             # For walking a dashed line is used
-            if leg.routeType != null
+            if leg.transitLeg == true
                 dashArray = null
+                opacity = 0.4
             else
                 dashArray = "5,10"
-                color = "#000" # override line color to black for visibility
+                opacity = 0.8
+                #color = "#000" # override line color to black for visibility
             polyline = new L.Polyline(points, {color: color, weight: 8, opacity: 0.2, clickable: false, dashArray: dashArray})
             polyline.addTo(routeLayer) # The route leg line is added to the routeLayer
             # Make zooming to the leg via click possible.
-            polyline = new L.Polyline(points, {color: color, opacity: 0.4, dashArray: dashArray})
+            polyline = new L.Polyline(points, {color: color, opacity: opacity, dashArray: dashArray})
                 .on 'click', (e) ->
                     mapfitBounds(polyline.getBounds())
                     if marker?
@@ -927,7 +929,7 @@ if not window.testem_mode
         setView: false
         maxZoom: 15
         watch: true
-        timeout: 0xFFFFFFFF
+        timeout: 24*60*60*1000
         enableHighAccuracy: true
 
 create_tile_layer = (map_config) ->
