@@ -8,7 +8,7 @@
 4. Push your commits to your branch as you work
 5. With last push, remove "WIP"-comment, and give unit test result instead.
 
-More info at https://help.github.com/articles/fork-a-repo/
+Detail info at https://help.github.com/articles/fork-a-repo/
 
 ## City Navigator proto ##
 
