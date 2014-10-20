@@ -1,3 +1,12 @@
+### Sujuvuusnavigaattori
+
+## Github use best practice for Sujuvuusnavigaattori project
+
+1. fork the repo 
+2. create a new feature branch for your work 
+3. Submit an empty pull request from your branch to the main repo to show you have work in progress. Start the name of the pull request with "WIP: " 
+4. Push your commits to your branch as you work
+
 ## City Navigator proto ##
 
 Like a car navigator but for taking public transport, based on Open Data.
