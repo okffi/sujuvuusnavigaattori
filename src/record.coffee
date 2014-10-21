@@ -5,7 +5,15 @@
 
 wakelocked = false
 
-polyline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
+# These are for determining route visualization colors
+speedBarrier1 = 0
+speedBarrier2 = 15
+speedBarrier3 = 30
+speedBarrier4 = 45
+
+lines = []
+
+#polyline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
 
 document.addEventListener("deviceready", () -> 
         window.powerManagement = cordova.require('org.apache.cordova.plugin.power-management.PowerManagement')
@@ -16,7 +24,10 @@ stop_recording = ->
     delete_trace_seq()
     window.powerManagement.releaseWakeLock () -> 
         wakelocked = false
-    window.map_dbg.removeLayer(polyline)
+    #window.map_dbg.removeLayer(polyline)
+    for line in lines
+        window.map_dbg.removeLayer(line)
+    lines = []
 
 start_recording = ->
     #$.getJSON(recorder_login_url
@@ -35,7 +46,7 @@ start_recording = ->
     store_recording_id(uniqueId(36))
     window.powerManagement.acquireWakeLock () -> 
         wakelocked = true
-    polyline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
+    #polyline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
 
 
 # React to user input.
@@ -133,6 +144,7 @@ wrap_trace = (trace) ->
         trace_seq: trace_seq
     }
 
+
 window.map_dbg.on 'locationfound', (e) ->
     console.log('locationfound caught')
     console.log(e)
@@ -158,8 +170,65 @@ window.map_dbg.on 'locationfound', (e) ->
             # FIXME: Only save for sensible errors, like timeout.
             store_trace(trace)
         )
-        polyline.addLatLng(e.latlng)
-        polyline.redraw()
+
+        visualize_route()
+        
+        #polyline.addLatLng(e.latlng)
+        #polyline.redraw()
+
+viusalize_route = ->
+    trace_seq = get_trace_seq
+    if trace_seq? and trace_seq.length >= 2
+        trace1 = trace_seq[trace_seq.length - 2]
+        trace2 = trace_seq[trace_seq.length - 1]
+        lat1 = trace1.location.latlng.lat
+        lng1 = trace1.location.latlng.lng
+        lat2 = trace2.location.latlng.lat
+        lng2 = trace2.location.latlng.lng
+        distance = get_distance(lat1, lng1, lat2, lng2)
+        console.log distance
+        timeDiff = trace2.timestamp - trace1.timestamp
+        speed = distance / timeDiff * 3.6 # kmh
+
+        color = switch
+            when speed <= speedBarrier1 then '#f00'
+            when speed > speedBarrier1 and speed <= speedBarrier2
+                ratio = 1 - (speedBarrier2 - speed) / (speedBarrier2 - speedBarrier1)
+                greenAmount = Math.round(ratio * 255).toString(16)
+                greenAmount = greenAmount.length == 1 ? '0' + greenAmount : greenAmount
+                color = '#ff' + greenAmount + '00'
+            when speed > speedBarrier2 and speed <= speedBarrier3
+                ratio = (speedBarrier3 - speed) / (speedBarrier3 - speedBarrier2)
+                redAmount = Math.round(ratio * 255).toString(16)
+                redAmount = redAmount.length == 1 ? '0' + redAmount : redAmount
+                color = '#' + redAmount + 'ff00'                                                
+            when speed > speedBarrier3 and speed <= speedBarrier4
+                ratio = (speedBarrier2 - speed) / (speedBarrier2 - speedBarrier1)
+                greenAmount = Math.round(ratio * 255).toString(16)
+                greenAmount = greenAmount.length == 1 ? '0' + greenAmount : greenAmount
+                blueAmount = Math.round((1 - ratio) * 255).toString(16)
+                blueAmount = blueAmount.length == 1 ? '0' + blueAmount : blueAmount
+                color = '#00' + greenAmount + blueAmount
+            else '#00f'
+            
+        line = new L.PolyLine([[lat1, lng1], [lat2, lng2]], { color: color }).addTo(window.map_dbg)
+        lines.push(line)
+
+# Harvesine distance
+get_distance = (lat1, lng1, lat2, lng2) ->
+    R = 6371000
+    dLat = deg2rad(lat2 - lat1)
+    dLng = deg2rad(lng2 - lng1)
+    sinDLat = Math.sin(dLat / 2)
+    sinDlng = Math.sin(dLng / 2)
+    a = sinDLat * sinDLat +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        sinDLng * sinDLng
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    d = R * c
+
+deg2rad = (deg) ->
+    deg * (Math.PI / 180)
 
 uniqueId = (length=8) ->
   id = ""
