@@ -6,10 +6,46 @@
 wakelocked = false
 
 # These are for determining route visualization colors
-speedBarrier1 = 0
-speedBarrier2 = 15
-speedBarrier3 = 30
-speedBarrier4 = 45
+routeVisualizationColors = {
+    cycling: [{
+        lowerSpeedLimit: 0,
+        higherSpeedLimit: 10,
+        color: '#f00' #red
+        },{
+        lowerSpeedLimit: 10,
+        higherSpeedLimit: 12,
+        color: '#ffa500' #orange
+        },{
+        lowerSpeedLimit: 12,
+        higherSpeedLimit: 15,
+        color: '#ffff00' #yellow
+        },{
+        lowerSpeedLimit: 15,
+        higherSpeedLimit: 20,
+        color: '#90ee90' #light green
+        },{
+        lowerSpeedLimit: 20,
+        higherSpeedLimit: 25,
+        color: '#0f0' #green
+        },{
+        lowerSpeedLimit: 25,
+        higherSpeedLimit: 30,
+        color: '#40e0d0' #turquoise
+        },{
+        lowerSpeedLimit: 30,
+        higherSpeedLimit: 35,
+        color: '#00f' #blue
+        },{
+        lowerSpeedLimit: 35,
+        higherSpeedLimit: 45,
+        color: '#ee82ee' #violet
+        },{
+        lowerSpeedLimit: 45,
+        higherSpeedLimit: undefined,
+        color: '#800080' #purple
+        }],
+    walking: []
+}
 
 lines = []
 
@@ -176,9 +212,13 @@ window.map_dbg.on 'locationfound', (e) ->
         #polyline.addLatLng(e.latlng)
         #polyline.redraw()
 
-viusalize_route = ->
-    trace_seq = get_trace_seq
+visualize_route = ->
+
+    console.log "in visualize_route"
+    
+    trace_seq = get_trace_seq()
     if trace_seq? and trace_seq.length >= 2
+        console.log "enough traces to visualize"
         trace1 = trace_seq[trace_seq.length - 2]
         trace2 = trace_seq[trace_seq.length - 1]
         lat1 = trace1.location.latlng.lat
@@ -187,31 +227,22 @@ viusalize_route = ->
         lng2 = trace2.location.latlng.lng
         distance = get_distance(lat1, lng1, lat2, lng2)
         console.log distance
-        timeDiff = trace2.timestamp - trace1.timestamp
-        speed = distance / timeDiff * 3.6 # kmh
+        console.log trace1.timestamp
+        console.log moment(trace1.timestamp).unix()
+        timeDiff = moment(trace2.timestamp).unix() - moment(trace1.timestamp).unix()
+        console.log timeDiff
+        avgSpeed = distance / timeDiff * 3.6 # kmh
+        color = undefined
+        console.log avgSpeed
+        for routeVisColor in routeVisualizationColors.cycling
+            if avgSpeed >= routeVisColor.lowerSpeedLimit
+                if !routeVisColor.higherSpeedLimit? or avgSpeed < routeVisColor.higherSpeedLimit
+                    color = routeVisColor.color
+                    break
 
-        color = switch
-            when speed <= speedBarrier1 then '#f00'
-            when speed > speedBarrier1 and speed <= speedBarrier2
-                ratio = 1 - (speedBarrier2 - speed) / (speedBarrier2 - speedBarrier1)
-                greenAmount = Math.round(ratio * 255).toString(16)
-                greenAmount = greenAmount.length == 1 ? '0' + greenAmount : greenAmount
-                color = '#ff' + greenAmount + '00'
-            when speed > speedBarrier2 and speed <= speedBarrier3
-                ratio = (speedBarrier3 - speed) / (speedBarrier3 - speedBarrier2)
-                redAmount = Math.round(ratio * 255).toString(16)
-                redAmount = redAmount.length == 1 ? '0' + redAmount : redAmount
-                color = '#' + redAmount + 'ff00'                                                
-            when speed > speedBarrier3 and speed <= speedBarrier4
-                ratio = (speedBarrier2 - speed) / (speedBarrier2 - speedBarrier1)
-                greenAmount = Math.round(ratio * 255).toString(16)
-                greenAmount = greenAmount.length == 1 ? '0' + greenAmount : greenAmount
-                blueAmount = Math.round((1 - ratio) * 255).toString(16)
-                blueAmount = blueAmount.length == 1 ? '0' + blueAmount : blueAmount
-                color = '#00' + greenAmount + blueAmount
-            else '#00f'
-            
-        line = new L.PolyLine([[lat1, lng1], [lat2, lng2]], { color: color }).addTo(window.map_dbg)
+        console.log color
+        line = L.polyline([[lat1, lng1], [lat2, lng2]], { color: color }).addTo(window.map_dbg)
+        line.redraw()
         lines.push(line)
 
 # Harvesine distance
@@ -220,7 +251,7 @@ get_distance = (lat1, lng1, lat2, lng2) ->
     dLat = deg2rad(lat2 - lat1)
     dLng = deg2rad(lng2 - lng1)
     sinDLat = Math.sin(dLat / 2)
-    sinDlng = Math.sin(dLng / 2)
+    sinDLng = Math.sin(dLng / 2)
     a = sinDLat * sinDLat +
         Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
         sinDLng * sinDLng
