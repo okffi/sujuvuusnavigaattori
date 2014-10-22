@@ -5,6 +5,8 @@
 
 wakelocked = false
 
+MAX_CYCLING_TRACE_DIST = 70 #meters
+
 # These are for determining route visualization colors
 routeVisualizationColors = {
     cycling: [{
@@ -213,18 +215,28 @@ window.map_dbg.on 'locationfound', (e) ->
         #polyline.redraw()
 
 visualize_route = ->
-
     console.log "in visualize_route"
+
+    # TODO:
+    # - average filter for speed, not for locations
+    # - no invisible lines
+    # - remove locations that are too far away from prev and next
     
     trace_seq = get_trace_seq()
-    if trace_seq? and trace_seq.length >= 2
+    if trace_seq? and trace_seq.length >= 4
         console.log "enough traces to visualize"
-        trace1 = trace_seq[trace_seq.length - 2]
-        trace2 = trace_seq[trace_seq.length - 1]
-        lat1 = trace1.location.latlng.lat
-        lng1 = trace1.location.latlng.lng
-        lat2 = trace2.location.latlng.lat
-        lng2 = trace2.location.latlng.lng
+        traces = []
+        for i in [arr.length-1..2] by -1
+            trace1 = trace_seq[i - 2]
+            trace2 = trace_seq[i - 1]
+            trace3 = trace_seq[i]
+            dist1 = get_distance(trace1.location.latlng.lat, trace1.location.latlng.lng,
+                trace2.location.latlng.lat, trace2.location.latlng.lng)
+            dist2 = get_distance(trace2.location.latlng.lat, trace2.location.latlng.lng,
+                trace3.location.latlng.lat, trace3.location.latlng.lng)
+            if dist1 < MAX_CYCLING_TRACE_DIST or dist2 < MAX_CYCLING_TRACE_DIST #trace2 seems to have good location
+            
+
         distance = get_distance(lat1, lng1, lat2, lng2)
         console.log distance
         console.log trace1.timestamp
@@ -241,7 +253,7 @@ visualize_route = ->
                     break
 
         console.log color
-        line = L.polyline([[lat1, lng1], [lat2, lng2]], { color: color }).addTo(window.map_dbg)
+        line = L.polyline([[lat1, lng1], [lat2, lng2]], { color: color, opacity: 0.8 }).addTo(window.map_dbg)
         line.redraw()
         lines.push(line)
 
