@@ -243,7 +243,7 @@ class GoogleLocation extends Location
         @name = pred.description
         @info = pred
     fetch_details: (callback, args) ->
-        url = google_url + "details/"
+        url = google_url + "geocode.json"
         params = {reference: @info.reference}
         $.getJSON url, params, (data) =>
             res = data.result
@@ -256,7 +256,7 @@ class GoogleLocation extends Location
 class GoogleCompleter extends RemoteAutocompleter
     @DESCRIPTION = "Google geocoder"
     fetch_results: ->
-        url = google_url + "autocomplete/"
+        url = google_url + "autocomplete.json"
         area = citynavi.config
         location = citynavi.get_source_location_or_area_center()
         # FIXME
@@ -279,6 +279,7 @@ class GoogleCompleter extends RemoteAutocompleter
                     continue
                 if area.google_suffix and pred.description.lastIndexOf(area.google_suffix) == pred.description.length - area.google_suffix.length
                     pred.description = pred.description.substring(0, pred.description.length - area.google_suffix.length)
+                pred.description = pred.description.replace(/( [^,]+),\1/g, "$1")
                 loc = new GoogleLocation pred
                 loc_list.push loc
             # submit_location_predictions is defined in RemoteAutocompleter
