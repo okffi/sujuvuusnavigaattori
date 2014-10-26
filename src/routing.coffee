@@ -1006,11 +1006,14 @@ map.on 'locationerror', (e) ->
 
 # Triggered whenever user location has changed.
 map.on 'locationfound', (e) ->
+    console.log e
 #    radius = e.accuracy / 2
     radius = e.accuracy
     measure = if e.accuracy < 2000 then "within #{Math.round(e.accuracy)} meters" else "within #{Math.round(e.accuracy/1000)} km"
-    point = e.latlng
+    point = { lat: parseFloat(e.latlng.lat), lng: parseFloat(e.latlng.lng) }
     transform_location point
+
+    console.log point
 
     bbox_sw = citynavi.config.bbox_sw
     bbox_ne = citynavi.config.bbox_ne
@@ -1058,10 +1061,11 @@ map.on 'locationfound', (e) ->
         popup = $.mobile.activePage.attr("id") != "front-page"
         set_source_marker(point, {accuracy: radius, measure: measure, popup: popup})
 
-    if e.accuracy > 2000
+    if !e.accuracy? || e.accuracy > 2000
         return
     # Add the position marker to the map and set click event handler for it
     # to set source marker (indicating navigation start point).
+    console.log point
     positionMarker = L.circle(point, radius, {color: 'red', weight: 1, opacity: 0.4}).addTo(map)
         .on 'click', (e) ->
             set_source_marker(point, {accuracy: radius, measure: measure})
