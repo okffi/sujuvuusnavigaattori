@@ -5,6 +5,48 @@
 
 wakelocked = false
 
+routeVisualizationColors = {
+    cycling: [{
+        lowerSpeedLimit: 0,
+        higherSpeedLimit: 10,
+        color: '#f00' #red
+        },{
+        lowerSpeedLimit: 10,
+        higherSpeedLimit: 12,
+        color: '#ffa500' #orange
+        },{
+        lowerSpeedLimit: 12,
+        higherSpeedLimit: 15,
+        color: '#ffff00' #yellow
+        },{
+        lowerSpeedLimit: 15,
+        higherSpeedLimit: 20,
+        color: '#90ee90' #light green
+        },{
+        lowerSpeedLimit: 20,
+        higherSpeedLimit: 25,
+        color: '#0f0' #green
+        },{
+        lowerSpeedLimit: 25,
+        higherSpeedLimit: 30,
+        color: '#40e0d0' #turquoise
+        },{
+        lowerSpeedLimit: 30,
+        higherSpeedLimit: 35,
+        color: '#00f' #blue
+        },{
+        lowerSpeedLimit: 35,
+        higherSpeedLimit: 45,
+        color: '#ee82ee' #violet
+        },{
+        lowerSpeedLimit: 45,
+        higherSpeedLimit: undefined,
+        color: '#800080' #purple
+        }],
+    walking: []
+}
+
+
 polyline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
 
 document.addEventListener("deviceready", () -> 
