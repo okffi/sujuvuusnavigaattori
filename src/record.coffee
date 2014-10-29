@@ -87,24 +87,32 @@ form_trace = (e) ->
     ll = e.latlng
     trace =
         timestamp: get_timestamp()
+        speed: if e.speed? then e.speed else null
         location:
             accuracy: e.accuracy
             latlng:
                 lat: ll.lat
                 lng: ll.lng
-            bounds:
-                northEast:
-                    lat: ne.lat
-                    lng: ne.lng
-                southWest:
-                    lat: sw.lat
-                    lng: sw.lng
         # FIXME: read the routes from somewhere
         routes:
             num: 0
 
 # Avoid typos in the localStorage key with convenience functions.
-store_recording_id = (id) -> localStorage['recording_id'] = id
+store_recording_id = (id) ->
+    localStorage['recording_id'] = id
+    recordings_string = localStorage['recordings']
+    if recodings_string?
+        recordings = JSON.parse(recordings_string)
+    else
+        recordings = []
+    
+    recordings.push({
+        id: id
+        date: get_timestamp()
+    })
+    localStorage['recordings'] = JSON.stringify(recordings)
+        
+    
 get_recording_id = -> localStorage['recording_id']
 delete_recording_id = -> delete localStorage['recording_id']
 is_signed_in = -> get_recording_id()?
@@ -161,7 +169,12 @@ window.map_dbg.on 'locationfound', (e) ->
         polyline.addLatLng(e.latlng)
         polyline.redraw()
 
+        visualize_fluency(e)
+
 uniqueId = (length=8) ->
   id = ""
   id += Math.random().toString(36).substr(2) while id.length < length
   id.substr 0, length
+
+visualize_fluency = (e) ->
+    
