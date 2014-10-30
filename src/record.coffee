@@ -103,10 +103,12 @@ form_trace = (e) ->
         routes:
             num: 0
 
+recording_id = null
+
 # Avoid typos in the localStorage key with convenience functions.
-store_recording_id = (id) -> localStorage['recording_id'] = id
-get_recording_id = -> localStorage['recording_id']
-delete_recording_id = -> delete localStorage['recording_id']
+store_recording_id = (id) -> recording_id = id
+get_recording_id = -> recording_id
+delete_recording_id = -> recording_id = null
 is_signed_in = -> get_recording_id()?
 
 # Avoid typos in the localStorage key with convenience functions.
