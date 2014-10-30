@@ -141,6 +141,9 @@ window.map_dbg.on 'locationfound', (e) ->
     if is_signed_in()
         trace = form_trace(e)
         payload = wrap_trace(trace)
+
+        
+        ###
         console.log('going to POST trace next')
         console.log(payload)
         jqxhr = $.ajax({
@@ -162,6 +165,7 @@ window.map_dbg.on 'locationfound', (e) ->
         )
         polyline.addLatLng(e.latlng)
         polyline.redraw()
+        ###
 
 uniqueId = (length=8) ->
   id = ""
