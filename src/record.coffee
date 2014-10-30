@@ -214,9 +214,16 @@ window.map_dbg.on 'locationfound', (e) ->
         visualize_fluency(e)
 
 uniqueId = (length=8) ->
-  id = ""
-  id += Math.random().toString(36).substr(2) while id.length < length
-  id.substr 0, length
+    id = ""
+    id += Math.random().toString(36).substr(2) while id.length < length
+    id.substr 0, length
 
 visualize_fluency = (e) ->
-    
+    if citynavi.itinerary?
+        # TODO location matching to itinerary if cycling itinerary
+        # send to server after matching
+        #
+        # TODO also add a page that can show routes individually and all together
+        # 
+
+
