@@ -246,10 +246,16 @@ get_route_points = (latlng_start, latlng_end) ->
     route_points = []
     points = (new L.LatLng(point[0]*1e-5, point[1]*1e-5) for point in citynavi.itinerary.legs[0].legGeometry.points)
     found_start = false
-    for point in points
+    found_end = false
+    for point in points # find route_points, start_latlng can be before or after end_latlng in the points
         if found_start is true
             route_points.push([point.lat, point.lng])
             if (point.lat is latlng_end[0] and point.lng is latlng_end[1])
+                break
+        else if found_end is true
+            route_points.push([point.lat, point.lng])
+            if (point.lat is latlng_start[0] and point.lng is latlng_start[1])
+                route_points.reverse()
                 break
         else if (point.lat is latlng_start[0] and point.lng is latlng_start[1])
              found_start = true
@@ -257,8 +263,9 @@ get_route_points = (latlng_start, latlng_end) ->
              # latlng_start and latlng_end can be equal
              if (point.lat is latlng_end[0] and point.lng is latlng_end[1])
                 break
-                                 
-
+        else if (point.lat is latlng_end[0] and point.lng is latlng_end[1])
+             route_points.push([point.lat, point.lng])
+             found_end = true
     route_points
 
 send_data = ->
