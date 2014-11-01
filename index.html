@@ -74,6 +74,10 @@
             </div>
             <div id="front-page-menu" data-role="popup">
                 <ul data-role="listview" data-inset="true">
+		  <li><a href="#my-routes?">
+		      <h3>My routes</h3>
+		      <p>Show your recorded routes.</p>
+		  </a></li>
                   <li><a href="#settings">
                       <h3>Settings</h3>
                       <p>Access the routing settings.</p>
@@ -200,6 +204,17 @@
             <div data-role="content">
             </div>
         </div>
+	<div id="my-routes" data-role="page">
+            <div data-role="header">
+                <!-- jQuery mobile back button to go one page back in history -->
+                <a href="" data-rel="back">Back</a>
+                <h1>My routes</h1>
+            </div>
+            <div data-role="content">
+                <ul data-role="list-view">
+                </ul>
+            </div>
+	</div>
         <!-- "Find nearest services" page -->
         <div id="service-directory" data-role="page">
             <div data-role="header">
