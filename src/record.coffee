@@ -1,6 +1,7 @@
 {
     recorder_login_url
     recorder_trace_seq_url
+    google_url
 } = citynavi.config
 
 # Determines how far a way the user's location can be from the navigation route to be used in fluency calculation
@@ -61,10 +62,12 @@ stop_recording = ->
     send_data()
     delete_recording_id()
     delete_trace_seq()
+    window.map_dbg.removeLayer(window.rawline)
+    for routeline in window.routelines
+        window.map_dbg.removeLayer(routeline)
+    window.routelines = []
     window.powerManagement.releaseWakeLock () -> 
         wakelocked = false
-    window.map_dbg.removeLayer(window.rawline)
-    window.map_dbg.removeLayer(window.routeline)
 
 start_recording = ->
     #$.getJSON(recorder_login_url
@@ -138,7 +141,7 @@ store_recording_id = (id) ->
     
     recordings_string = localStorage['recordings']
 
-    if recodings_string?
+    if recordings_string?
         recordings = JSON.parse(recordings_string)
     else
         recordings = []
@@ -152,8 +155,47 @@ store_recording_id = (id) ->
         recordings.push({
             id: id
             date: get_timestamp()
+            from:
+                name:
+                    otp: window.route_dbg.plan.from.name
+                    okf: null
+                location:
+                    lat: window.route_dbg.plan.from.lat
+                    lng: window.route_dbg.plan.from.lon
+            to:
+                name:
+                    otp: window.route_dbg.plan.to.name
+                    okf: null
+                location:
+                    lat: window.route_dbg.plan.to.lat
+                    lng: window.route_dbg.plan.to.lon
+            mode: window.route_dbg.requestParameters.mode                
         })
         localStorage['recordings'] = JSON.stringify(recordings)
+
+        reverse_geocode(window.route_dbg.plan.from.lat, window.route_dbg.plan.from.lon, handle_geo_result, [id, 'from'])
+        reverse_geocode(window.route_dbg.plan.to.lat, window.route_dbg.plan.to.lon, handle_geo_result, [id, 'to'])
+
+reverse_geocode = (lat, lng, callback, callback_params) ->
+    $.getJSON google_url + "geocode.json", { lat: lat, lng: lng, language: "fin" }, (data) =>
+        handle_geo_result data, callback_params
+        
+handle_geo_result = (result, params) ->
+    address = result?.results?[0].formatted_address
+    if address?
+        recordings_string = localStorage['recordings']
+        if recordings_string?
+            recordings = JSON.parse(recordings_string)
+            for record in recordings
+                if record.id is params[0]
+                    if params[1] is 'to'
+                        record.to.name.okf = address
+                    else
+                        record.from.name.okf = address
+
+                    localStorage['recordings'] = JSON.stringify(recordings)
+                    break
+                
 
 # Avoid typos in the localStorage key with convenience functions.
 get_recording_id = -> recording_id
