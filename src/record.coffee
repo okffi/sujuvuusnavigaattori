@@ -11,7 +11,7 @@ MAX_LOCATION_ACCURACY_ERROR = 20
 # than the defined max time then don't calculate fluency for that time period 
 MAX_TIME_BETWEEN_ROUTE_POINTS = 20  # seconds
 
-NEAR_CROSSING_MAX_DIST = 10
+NEAR_CROSSING_MAX_DIST = 5
 
 wakelocked = false
 
@@ -88,7 +88,7 @@ start_recording = ->
     #)
     delete_trace_seq()
     store_recording_id(uniqueId(36))
-    window.rawline = new L.Polyline([], color: 'red').addTo(window.map_dbg)
+    window.rawline = new L.Polyline([], { color: 'red', opacity: 0.2 }).addTo(window.map_dbg)
     window.routelines = []
 
     window.powerManagement.acquireWakeLock () -> 
@@ -220,10 +220,31 @@ get_trace_seq = ->
 
 delete_trace_seq = -> delete localStorage['trace_seq']
 
+info = L.control()
+info.onAdd = (map) ->
+    @._div = L.DomUtil.create('div', 'info')
+    @.update()
+    @._div
+
+info.update = (props) ->
+    if props?
+        @._div.innerHTML = '<b>s: ' + props.speed + '</b><br />a: ' + props.accuracy
+
+info.addTo(window.map_dbg)
+
 
 window.map_dbg.on 'locationfound', (e) ->
     #console.log('locationfound caught')
     #console.log(e)
+
+    props = {
+        speed: -1
+        accuracy: -1
+    }
+    props.speed = if e.speed? then e.speed else -1
+    props.accuracy = if e.accuracy? then e.accuracy else -1
+    info.update props 
+    
     if is_recording()
         trace = form_raw_trace(e)
         store_trace trace
@@ -242,13 +263,13 @@ form_raw_trace = (e) ->
             altitude: if e.altitude? then e.altitude else null
             aaccuracy: if e.altitudeAccuracy? then e.altitudeAccuracy else null
             accuracy: if e.accuracy? then e.accuracy else null
+            heading: if e.heading? then e.heading else null
             latlng:
                 lat: ll.lat
                 lng: ll.lng
 
+        
 previous_crossing_latlng = null
-passed_crossing = false
-near_crossing = false
 previous_good_location_timestamp = null
 
 form_route_trace = (e) ->
@@ -288,12 +309,8 @@ form_route_trace = (e) ->
         dist = L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng)
         console.log "nearing next crossing, dist: " + dist        
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
-            near_crossing = true
             console.log "very near to crossing"
-        else if near_crossing is true # Getting away from the crossing
-            console.log "getting away from crossing, creating fluency data"
             create_fluency_data(previous_crossing_latlng, crossing_latlng)
-            near_crossing = false
             previous_crossing_latlng = crossing_latlng
 
 create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
@@ -312,7 +329,7 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     if speedSum > 0
         avgSpeed = speedSum / speedCount * 3.6
     console.log avgSpeed
-    # TODO send to server if speed succesfully calculated
+    #avgSpeed = Math.random() * 50 # TODO Comment out or remove!
     color = 'black'
     for routeVisColor in routeVisualizationColors.cycling
         if avgSpeed >= routeVisColor.lowerSpeedLimit
@@ -323,11 +340,43 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     console.log color
     route_points = get_route_points(previous_crossing_latlng, crossing_latlng)
     console.log route_points
-    routeLine = new L.Polyline(route_points, color: color)
+    # Send to server if speed succesfully calculated
+    if avgSpeed > 0
+        send_data_to_server(avgSpeed, route_points)
+    # Draw speed to user
+    routeLine = new L.Polyline(route_points, { color: color, opacity: 0.8 })
     window.routelines.push(routeLine)
     routeLine.addTo(window.map_dbg)
     routeLine.redraw()
     delete_trace_seq()
+
+send_data_to_server = (speed, points) ->
+
+    payload =
+        session_id: get_recording_id()
+        timestamp: get_timestamp()
+        speed: speed
+        points: points
+    
+    console.log('going to POST data to server')
+    console.log(payload)
+    jqxhr = $.ajax({
+        url: recorder_trace_seq_url
+        data: JSON.stringify(payload)
+        contentType: 'application/json'
+        type: 'POST'
+        }).done((d) ->
+            console.log('trace response:')
+            console.log(d)
+        ).fail((jqXHR, textStatus, errorThrown) ->
+            console.log(jqXHR)
+            console.log(textStatus)
+            console.log(errorThrown)
+            # TODO store
+            # FIXME: Only save for sensible errors, like timeout.
+            # store_trace(trace)
+         )
+ 
     
 get_route_points = (latlng_start, latlng_end) ->
     route_points = []
@@ -355,31 +404,6 @@ get_route_points = (latlng_start, latlng_end) ->
              found_end = true
     route_points
 
-send_data = ->
-        ###
-        payload = wrap_trace(trace)
-
-        console.log('going to POST trace next')
-        console.log(payload)
-        jqxhr = $.ajax({
-            url: recorder_trace_seq_url
-            data: JSON.stringify(payload)
-            # FIXME: To avoid the preflight request, use text/plain instead.
-            contentType: 'application/json'
-            type: 'POST'
-        }).done((d) ->
-            console.log('trace response:')
-            console.log(d)
-            delete_trace_seq()
-        ).fail((jqXHR, textStatus, errorThrown) ->
-            console.log(jqXHR)
-            console.log(textStatus)
-            console.log(errorThrown)
-            # FIXME: Only save for sensible errors, like timeout.
-            store_trace(trace)
-        )
-        ###
-
 uniqueId = (length=8) ->
     id = ""
     id += Math.random().toString(36).substr(2) while id.length < length
@@ -387,6 +411,7 @@ uniqueId = (length=8) ->
 
 
 find_nearest_route_crossing_point = (latlng) ->
+    #TODO user Overpass API to make sure that the point is for crossing
     points = (new L.LatLng(point[0]*1e-5, point[1]*1e-5) for point in citynavi.itinerary.legs[0].legGeometry.points)
     ll = L.GeometryUtil.closest(window.map_dbg, points, latlng, true)
 
