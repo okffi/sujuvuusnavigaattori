@@ -62,6 +62,8 @@ document.addEventListener("deviceready", () ->
     ,false)
 
 stop_recording = ->
+    window.map_dbg.removeControl info
+    window.speedLegend = undefined
     delete_recording_id()
     reset_routing_data()
     delete_trace_seq()
@@ -73,6 +75,8 @@ stop_recording = ->
         wakelocked = false
 
 start_recording = ->
+    info.addTo(window.map_dbg)
+    window.speedLegend = info
     reset_routing_data()
     delete_trace_seq()
     store_recording_id(uniqueId(36))
@@ -214,24 +218,36 @@ info.onAdd = (map) ->
     @.update()
     @._div
 
-info.update = (props) ->
-    if props?
-        @._div.innerHTML = '<b>s: ' + props.speed + '</b><br />a: ' + props.accuracy
+info.update =  ->
+    html = '<div>Avg. speed</div>'
+    console.log "creating color divs"
+    routeVisualizationColors = window.routeVisualizationColors
+    console.log routeVisualizationColors
+    for color in routeVisualizationColors.cycling
+        console.log "creating div"
+        html += '<div><span style="color:' + color.color + ';">&#9608; ' +
+            color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
+    console.log html
 
-info.addTo(window.map_dbg)
+    @._div.innerHTML = html
+                                                                
+#info.update = (props) ->
+#    if props?
+#        @._div.innerHTML = '<b>s: ' + props.speed + '</b><br />a: ' + props.accuracy
 
+#info.addTo(window.map_dbg)
 
 window.map_dbg.on 'locationfound', (e) ->
     #console.log('locationfound caught')
     #console.log(e)
 
-    props = {
-        speed: -1
-        accuracy: -1
-    }
-    props.speed = if e.speed? then e.speed else -1
-    props.accuracy = if e.accuracy? then e.accuracy else -1
-    info.update props 
+    #props = {
+    #    speed: -1
+    #    accuracy: -1
+    #}
+    #props.speed = if e.speed? then e.speed else -1
+    #props.accuracy = if e.accuracy? then e.accuracy else -1
+    #info.update props 
     
     if is_recording()
         trace = form_raw_trace(e)
@@ -319,7 +335,7 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     if speedSum > 0
         avgSpeed = speedSum / speedCount * 3.6
     console.log avgSpeed
-    avgSpeed = Math.random() * 50 # TODO Comment out or remove!
+    #avgSpeed = Math.random() * 50 # TODO Comment out or remove!
     color = 'black'
     for routeVisColor in routeVisualizationColors.cycling
         if avgSpeed >= routeVisColor.lowerSpeedLimit
@@ -332,8 +348,7 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     console.log route_points
     # Send to server if speed succesfully calculated
     if avgSpeed > 0
-        for i in [0..route_points-2] by 1
-            send_data_to_server(avgSpeed, [route_points[i], route_points[i + 1]])
+        send_data_to_server(avgSpeed, route_points)
     # Draw speed to user
     routeLine = new L.Polyline(route_points, { color: color, opacity: 0.8 })
     window.routelines.push(routeLine)

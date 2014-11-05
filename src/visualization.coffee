@@ -11,6 +11,27 @@
     recorder_get_fluency_url
 } = citynavi.config
 
+info = L.control()
+info.onAdd = (map) ->
+    @._div = L.DomUtil.create('div', 'info')
+    @.update()
+    @._div
+    
+info.update =  ->
+    html = '<div>Avg. speed</div>'
+    console.log "creating color divs"
+    routeVisualizationColors = window.routeVisualizationColors
+    console.log routeVisualizationColors
+    for color in routeVisualizationColors.cycling
+        console.log "creating div"
+        html += '<div><span style="color:' + color.color + ';">&#9608; ' +
+            color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
+
+    console.log html
+
+    @._div.innerHTML = html
+                                    
+
 geoJsonLayers = []
 
 BAD_NAMES = [ "", " " ]
@@ -64,7 +85,6 @@ $(document).bind 'pagebeforechange', (e, data) ->
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
         $.getJSON recorder_get_route_url, { id: id }, (data) =>
-            console.log data
             if data?
                 for route_vector in data
                     color = 'black'
@@ -80,11 +100,17 @@ $(document).bind 'pagebeforechange', (e, data) ->
                         ).addTo(window.map_dbg)
                     geoJsonLayers.push(geoJsonLayer)
 
-                $('#my-route').bind 'pagebeforehide', (e, o) ->
-                    console.log "removing geoJsonLayers"
-                    for geoJsonLayer in geoJsonLayers
-                        window.map_dbg.removeLayer geoJsonLayer
-                    geoJsonLayers = []  
+            $('#my-route').bind 'pagebeforehide', (e, o) ->
+                console.log "removing geoJsonLayers"
+                for geoJsonLayer in geoJsonLayers
+                    window.map_dbg.removeLayer geoJsonLayer
+                geoJsonLayers = []
+                window.map_dbg.removeControl info
+                window.speedLegend = undefined
+
+        if not window.speedLegend?
+            info.addTo(window.map_dbg)
+            window.speedLegend = info
 
 $('#my-route').bind 'pageshow', (e, data) ->
     console.log "pageshow"
@@ -107,6 +133,13 @@ $(document).bind 'pagebeforechange', (e, data) ->
         $.getJSON recorder_get_fluency_url, (data) =>
             console.log data
             if data?
+#                for i in [0..data.length-1] by 1
+#                    for j in [i+1..data.length-1] by 1
+#                        if data[i].geom.coordinates[0][0] is data[j].geom.coordinates[0][0] and
+#                            data[i].geom.coordinates[0][1] is data[j].geom.coordinates[0][1] and
+#                            data[i].geom.coordinates[1][0] is data[j].geom.coordinates[1][0] and
+#                            data[i].geom.coordinates[1][1] is data[j].geom.coordinates[1][1]
+#                                console.log "found duplicate route vector"
                 for route_vector in data
                     color = 'black'
                     routeVisualizationColors = window.routeVisualizationColors
@@ -118,17 +151,23 @@ $(document).bind 'pagebeforechange', (e, data) ->
     
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
-                            "color": color
+                            "color": color,
+                            "opacity": 0.8
                     ).addTo(window.map_dbg)
                     geoJsonLayers.push(geoJsonLayer)
 
 $('#fluency-page').bind 'pageshow', (e, data) ->
     console.log "fluency-page pageshow"
-    window.map_dbg.setView(citynavi.config.center, citynavi.config.min_zoom)
-
+    #window.map_dbg.setView(citynavi.config.center, citynavi.config.min_zoom)
+    if not window.speedLegend?
+        info.addTo(window.map_dbg)
+        window.speedLegend = info
 
 $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
     for geoJsonLayer in geoJsonLayers
         window.map_dbg.removeLayer geoJsonLayer
     geoJsonLayers = []
+
+    window.map_dbg.removeControl info
+    window.speedLegend = undefined
