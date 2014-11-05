@@ -51,7 +51,7 @@
         <!-- Front page -->
         <div id="front-page" data-role="page">
             <div data-role="header" data-theme="b">
-                <h1>Sujuvuusnavigaatori</h1>
+                <h1>Sujuvuusnavigaattori</h1>
                 <!-- Settings button.
                      data-icon="gear" and class="ui-btn-right" are jQuery mobile specific -->
                 <a href="#front-page-menu" data-icon="menu" class="ui-btn-right" data-rel="popup" data-iconpos="notext" data-transition="slidedown">Menu</a>
@@ -82,6 +82,10 @@
 		      <h3>My routes</h3>
 		      <p>Show your recorded routes.</p>
 		  </a></li>
+		  <li><a href="#fluency-page">
+		      <h3>Fluency visualization</h3>
+		      <p>Show fluency data based on all recorded routes.</p>
+		  </a></li>
                   <li><a href="#service-directory?">
                       <h3>Find nearest services</h3>
                       <p>Find a service that is nearest to your current location.</p>
@@ -98,6 +102,20 @@
                 </ul>
             </div>
         </div>
+	<!-- My route page -->
+	<div id="my-route" data-role="page">
+            <div data-role="header" data-theme="b">
+                <a href="" data-rel="back">Back</a>
+		<h1>Route</h1>
+	    </div>
+	</div>
+	<!-- Fluency page -->
+	<div id="fluency-page" data-role="page">
+            <div data-role="header" data-theme="b">
+                <a href="" data-rel="back">Back</a>
+		<h1>Overall Fluency</h1>
+	    </div>
+	</div>
         <!-- Map page -->
         <div id="map-page" data-role="page">
             <div data-role="header" data-theme="b">
