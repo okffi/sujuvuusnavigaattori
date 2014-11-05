@@ -175,7 +175,7 @@ $('#fluency-page').bind 'pageshow', (e, data) ->
 $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
     if geoJsonFeatureGroup?
-        window_map_dbg.removeLayer geoJsonFeatureGroup
+        window.map_dbg.removeLayer geoJsonFeatureGroup
         geoJsonFeatureGroup = null
 
     if window.speedLegend?
