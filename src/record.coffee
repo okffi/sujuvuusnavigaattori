@@ -11,7 +11,7 @@ MAX_LOCATION_ACCURACY_ERROR = 20
 # than the defined max time then don't calculate fluency for that time period 
 MAX_TIME_BETWEEN_ROUTE_POINTS = 20  # seconds
 
-NEAR_CROSSING_MAX_DIST = 5
+NEAR_CROSSING_MAX_DIST = 10
 
 wakelocked = false
 
@@ -55,15 +55,15 @@ routeVisualizationColors = {
         }],
     walking: []
 }
-
+window.routeVisualizationColors = routeVisualizationColors
 
 document.addEventListener("deviceready", () -> 
         window.powerManagement = cordova.require('org.apache.cordova.plugin.power-management.PowerManagement')
     ,false)
 
 stop_recording = ->
-    send_data()
     delete_recording_id()
+    reset_routing_data()
     delete_trace_seq()
     window.map_dbg.removeLayer(window.rawline)
     for routeline in window.routelines
@@ -73,19 +73,7 @@ stop_recording = ->
         wakelocked = false
 
 start_recording = ->
-    #$.getJSON(recorder_login_url
-    #).done((data) ->
-    #    console.log('sign in success')
-    #    console.log(data)
-    #    if data?.sessionId?
-    #        console.log('sessionID found in data from server')
-    #        store_recording_id(data.sessionId)
-    #).fail((e, x, y) ->
-    #    console.log("sign-in error")
-    #    console.log(e)
-    #    console.log(x)
-    #    console.log(y)
-    #)
+    reset_routing_data()
     delete_trace_seq()
     store_recording_id(uniqueId(36))
     window.rawline = new L.Polyline([], { color: 'red', opacity: 0.2 }).addTo(window.map_dbg)
@@ -268,6 +256,10 @@ form_raw_trace = (e) ->
                 lat: ll.lat
                 lng: ll.lng
 
+
+reset_routing_data = ->
+    previous_crossing_latlng = null
+    previous_good_location_timestamp = null
         
 previous_crossing_latlng = null
 previous_good_location_timestamp = null
@@ -306,8 +298,6 @@ form_route_trace = (e) ->
     console.log "crossing_latlng: ", crossing_latlng.lat, crossing_latlng.lng
  
     if crossing_latlng.lat isnt previous_crossing_latlng.lat or crossing_latlng.lng isnt previous_crossing_latlng.lng
-        dist = L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng)
-        console.log "nearing next crossing, dist: " + dist        
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
             console.log "very near to crossing"
             create_fluency_data(previous_crossing_latlng, crossing_latlng)
@@ -329,7 +319,7 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     if speedSum > 0
         avgSpeed = speedSum / speedCount * 3.6
     console.log avgSpeed
-    #avgSpeed = Math.random() * 50 # TODO Comment out or remove!
+    avgSpeed = Math.random() * 50 # TODO Comment out or remove!
     color = 'black'
     for routeVisColor in routeVisualizationColors.cycling
         if avgSpeed >= routeVisColor.lowerSpeedLimit
@@ -342,7 +332,8 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     console.log route_points
     # Send to server if speed succesfully calculated
     if avgSpeed > 0
-        send_data_to_server(avgSpeed, route_points)
+        for i in [0..route_points-2] by 1
+            send_data_to_server(avgSpeed, [route_points[i], route_points[i + 1]])
     # Draw speed to user
     routeLine = new L.Polyline(route_points, { color: color, opacity: 0.8 })
     window.routelines.push(routeLine)
