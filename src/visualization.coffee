@@ -32,7 +32,7 @@ info.update =  ->
     @._div.innerHTML = html
                                     
 
-geoJsonLayers = []
+geoJsonFeatureGroup = null
 
 BAD_NAMES = [ "", " " ]
 
@@ -86,6 +86,8 @@ $(document).bind 'pagebeforechange', (e, data) ->
         console.log id
         $.getJSON recorder_get_route_url, { id: id }, (data) =>
             if data?
+                geoJsonFeatureGroup = L.featureGroup();
+                
                 for route_vector in data
                     color = 'black'
                     routeVisualizationColors = window.routeVisualizationColors
@@ -94,33 +96,34 @@ $(document).bind 'pagebeforechange', (e, data) ->
                             if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
                                 color = routeVisColor.color
                                 break
+                    
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
                             "color": color
-                        ).addTo(window.map_dbg)
-                    geoJsonLayers.push(geoJsonLayer)
+                        )
+                    geoJsonFeatureGroup.addLayer(geoJsonLayer);
+
+                geoJsonFeatureGroup.addTo(window.map_dbg)
 
             $('#my-route').bind 'pagebeforehide', (e, o) ->
                 console.log "removing geoJsonLayers"
-                for geoJsonLayer in geoJsonLayers
-                    window.map_dbg.removeLayer geoJsonLayer
-                geoJsonLayers = []
-                window.map_dbg.removeControl info
-                window.speedLegend = undefined
+                if geoJsonFeatureGroup?
+                    window.map_dbg.removeLayer geoJsonFeatureGroup
+                    geoJsonFeatureGroup = null
+                if window.speedLegend?
+                    window.map_dbg.removeControl window.speedLegend
+                    window.speedLegend = undefined
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
             window.speedLegend = info
 
 $('#my-route').bind 'pageshow', (e, data) ->
-    console.log "pageshow"
-    if typeof data.toPage != "string"
-        return
-    console.log data
-    u = $.mobile.path.parseUrl(data.toPage)
+    console.log "my-route pageshow"
 
-    # TODO resize_map?
-    window.map_dbg.setView(citynavi.config.center, citynavi.config.min_zoom)
+    if geoJsonFeatureGroup?
+        window.map_dbg.fitBounds(geoJsonFeatureGroup.getBounds())
+    #window.map_dbg.setView(citynavi.config.center, citynavi.config.min_zoom)
 
 $(document).bind 'pagebeforechange', (e, data) ->
     if typeof data.toPage != "string"
@@ -133,6 +136,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
         $.getJSON recorder_get_fluency_url, (data) =>
             console.log data
             if data?
+                geoJsonFeatureGroup = L.featureGroup();
 #                for i in [0..data.length-1] by 1
 #                    for j in [i+1..data.length-1] by 1
 #                        if data[i].geom.coordinates[0][0] is data[j].geom.coordinates[0][0] and
@@ -140,6 +144,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
 #                            data[i].geom.coordinates[1][0] is data[j].geom.coordinates[1][0] and
 #                            data[i].geom.coordinates[1][1] is data[j].geom.coordinates[1][1]
 #                                console.log "found duplicate route vector"
+
                 for route_vector in data
                     color = 'black'
                     routeVisualizationColors = window.routeVisualizationColors
@@ -153,8 +158,9 @@ $(document).bind 'pagebeforechange', (e, data) ->
                         style:
                             "color": color,
                             "opacity": 0.8
-                    ).addTo(window.map_dbg)
-                    geoJsonLayers.push(geoJsonLayer)
+                    )
+                    geoJsonFeatureGroup.addLayer(geoJsonLayer)
+                geoJsonFeatureGroup.addTo(window.map_dbg)
 
 $('#fluency-page').bind 'pageshow', (e, data) ->
     console.log "fluency-page pageshow"
@@ -163,11 +169,15 @@ $('#fluency-page').bind 'pageshow', (e, data) ->
         info.addTo(window.map_dbg)
         window.speedLegend = info
 
+    location = citynavi.get_source_location_or_area_center()
+    window.map_dbg.setView(location, 12)
+
 $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
-    for geoJsonLayer in geoJsonLayers
-        window.map_dbg.removeLayer geoJsonLayer
-    geoJsonLayers = []
+    if geoJsonFeatureGroup?
+        window_map_dbg.removeLayer geoJsonFeatureGroup
+        geoJsonFeatureGroup = null
 
-    window.map_dbg.removeControl info
-    window.speedLegend = undefined
+    if window.speedLegend?
+        window.map_dbg.removeControl window.speedLegend
+        window.speedLegend = undefined
