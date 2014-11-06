@@ -250,6 +250,7 @@ window.map_dbg.on 'locationfound', (e) ->
     #info.update props 
     
     if is_recording()
+        #if e.accuracy? and e.accuracy <=20 # TODO enable!
         trace = form_raw_trace(e)
         store_trace trace
         form_route_trace(e)
@@ -263,6 +264,7 @@ form_raw_trace = (e) ->
     trace =
         timestamp: get_timestamp()
         speed: if e.speed? then e.speed else null
+        mode: window.route_dbg.requestParameters.mode
         location:
             altitude: if e.altitude? then e.altitude else null
             aaccuracy: if e.altitudeAccuracy? then e.altitudeAccuracy else null
@@ -304,6 +306,8 @@ form_route_trace = (e) ->
                 previous_good_location_timestamp = get_timestamp()
                 previous_crossing_latlng = crossing_latlng
                 delete_trace_seq()
+                trace = form_raw_trace(e)
+                store_trace trace
                 return
                 
     previous_good_location_timestamp = get_timestamp()
@@ -317,25 +321,29 @@ form_route_trace = (e) ->
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
             console.log "very near to crossing"
             create_fluency_data(previous_crossing_latlng, crossing_latlng)
+            delete_trace_seq()
+            trace = form_raw_trace(e)
+            store_trace trace
             previous_crossing_latlng = crossing_latlng
 
 create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     speedSum = 0
     speedCount = 0
     trace_seq = get_trace_seq()
-    for trace in trace_seq
-        ll = find_nearest_route_point([trace.location.latlng.lat, trace.location.latlng.lng])
-        dist = L.GeometryUtil.distance(window.map_dbg, ll, [trace.location.latlng.lat, trace.location.latlng.lng])
-        console.log "ll, dist, trace.location.accuracy, trace.speed", ll, dist, trace.location.accuracy, trace.speed
-        if dist <= MAX_TRACK_ERROR_DIST and trace.speed?
-                speedSum += trace.speed
-                speedCount++
-                console.log "trace.speed, speedSum, speedCount", trace.speed, speedSum, speedCount
+    startTimeStamp = trace_seq[0].timestamp
+    endTimeStamp = trace_seq[trace_seq.length - 1].timestamp
+    timeDiff = moment(endTimeStamp).unix() - moment(startTimeStamp).unix()
+    console.log timeDiff
+    route_points = get_route_points(previous_crossing_latlng, crossing_latlng)
+    console.log route_points
+    dist = 0
+    for i in [0..route_points.length - 1]
+        dist += get_distance(route_points[0][0], route_points[0][1], route_points[1][0], route_points[1][1]) 
     avgSpeed = -1
-    if speedSum > 0
-        avgSpeed = speedSum / speedCount * 3.6
+    if timeDiff > 0
+        avgSpeed = dist / timeDiff * 3.6 # kmh
     console.log avgSpeed
-    #avgSpeed = Math.random() * 50 # TODO Comment out or remove!
+    #avgSpeed = Math.random() * 50
     color = 'black'
     for routeVisColor in routeVisualizationColors.cycling
         if avgSpeed >= routeVisColor.lowerSpeedLimit
@@ -344,8 +352,6 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
                 break
 
     console.log color
-    route_points = get_route_points(previous_crossing_latlng, crossing_latlng)
-    console.log route_points
     # Send to server if speed succesfully calculated
     if avgSpeed > 0
         send_data_to_server(avgSpeed, route_points)
@@ -354,15 +360,32 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     window.routelines.push(routeLine)
     routeLine.addTo(window.map_dbg)
     routeLine.redraw()
-    delete_trace_seq()
 
+# Harvesine distance
+get_distance = (lat1, lng1, lat2, lng2) ->
+    R = 6371000
+    dLat = deg2rad(lat2 - lat1)
+    dLng = deg2rad(lng2 - lng1)
+    sinDLat = Math.sin(dLat / 2)
+    sinDLng = Math.sin(dLng / 2)
+    a = sinDLat * sinDLat +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        sinDLng * sinDLng
+    c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    d = R * c
+        
+deg2rad = (deg) ->
+    deg * (Math.PI / 180)
+                                                            
 send_data_to_server = (speed, points) ->
 
     payload =
         session_id: get_recording_id()
         timestamp: get_timestamp()
         speed: speed
+        mode: window.route_dbg.requestParameters.mode
         points: points
+        trace_seq: get_trace_seq()
     
     console.log('going to POST data to server')
     console.log(payload)
