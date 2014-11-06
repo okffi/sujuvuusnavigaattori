@@ -99,7 +99,8 @@ $(document).bind 'pagebeforechange', (e, data) ->
                     
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
-                            "color": color
+                            "color": color,
+                            "opacity": 0.8
                         )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer);
 
