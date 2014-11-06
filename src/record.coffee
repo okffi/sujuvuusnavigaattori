@@ -80,7 +80,7 @@ start_recording = ->
     reset_routing_data()
     delete_trace_seq()
     store_recording_id(uniqueId(36))
-    window.rawline = new L.Polyline([], { color: 'red', opacity: 0.2 }).addTo(window.map_dbg)
+    window.rawline = new L.Polyline([], { color: 'black', opacity: 0.4 }).addTo(window.map_dbg)
     window.routelines = []
 
     window.powerManagement.acquireWakeLock () -> 
@@ -149,6 +149,10 @@ store_recording_id = (id) ->
         recordings.push({
             id: id
             date: get_timestamp()
+            endTime: null
+            avgSpeed: 0
+            recordedRouteDistance: 0
+            rawDistance: 0
             from:
                 name:
                     otp: window.route_dbg.plan.from.name
@@ -196,6 +200,46 @@ get_recording_id = -> recording_id
 delete_recording_id = -> recording_id = null
 is_recording = -> get_recording_id()?
 
+update_current_recording_endTime = (value) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()                                
+                record.endTime = value
+                localStorage['recordings'] = JSON.stringify(recordings)
+                break
+
+update_current_recording_speed = (value) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()                                
+                record.avgSpeed = value
+                localStorage['recordings'] = JSON.stringify(recordings)
+                break
+
+update_current_recording_route_dist = (value) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()                                
+                record.recordedRouteDistance = value
+                localStorage['recordings'] = JSON.stringify(recordings)
+                break
+
+update_current_recording_raw_dist = (value) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()                                
+                record.rawDistance = value
+                localStorage['recordings'] = JSON.stringify(recordings)
+                break
+
 store_trace = (trace) ->
     if trace?
         trace_seq = get_trace_seq()
@@ -210,7 +254,7 @@ get_trace_seq = ->
     if trace_seq_str?
         trace_seq = JSON.parse(trace_seq_str)
 
-delete_trace_seq = -> delete localStorage['trace_seq']
+delete_trace_seq = -> window.localStorage.removeItem('trace_seq')
 
 info = L.control()
 info.onAdd = (map) ->
@@ -227,6 +271,7 @@ info.update =  ->
         console.log "creating div"
         html += '<div><span style="color:' + color.color + ';">&#9608; ' +
             color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
+    html += '<div><span style="color:' + '#000' + ';">&#9608; GPS'
     console.log html
 
     @._div.innerHTML = html
@@ -251,11 +296,20 @@ window.map_dbg.on 'locationfound', (e) ->
     
     if is_recording()
         #if e.accuracy? and e.accuracy <=20 # TODO enable!
+        update_raw_distance(e.latlng)
         trace = form_raw_trace(e)
         store_trace trace
         form_route_trace(e)
         window.rawline.addLatLng([trace.location.latlng.lat, trace.location.latlng.lng])
         window.rawline.redraw()
+
+update_raw_distance = (latlng) ->
+    trace_seq = get_trace_seq()
+    if trace_seq? and trace_seq.length > 0
+        dist = get_distance(latlng.lat, latlng.lng,
+            trace_seq[trace_seq.length - 1].location.latlng.lat, trace_seq[trace_seq.length - 1].location.latlng.lng)
+        rawDistSum += dist
+        update_current_recording_raw_dist(rawDistSum)
         
 form_raw_trace = (e) ->
     b = e.bounds
@@ -278,9 +332,15 @@ form_raw_trace = (e) ->
 reset_routing_data = ->
     previous_crossing_latlng = null
     previous_good_location_timestamp = null
+    timeSum = 0
+    distSum = 0
+    rawDistSum = 0
         
 previous_crossing_latlng = null
 previous_good_location_timestamp = null
+timeSum = 0
+distSum = 0
+rawDistSum = 0
 
 form_route_trace = (e) ->
     # If current location past crossing then calculate avg. speed between that crossing and previous one and send to server
@@ -321,6 +381,7 @@ form_route_trace = (e) ->
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
             console.log "very near to crossing"
             create_fluency_data(previous_crossing_latlng, crossing_latlng)
+            update_current_recording_endTime(get_timestamp())
             delete_trace_seq()
             trace = form_raw_trace(e)
             store_trace trace
@@ -343,6 +404,13 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     if timeDiff > 0
         avgSpeed = dist / timeDiff * 3.6 # kmh
     console.log avgSpeed
+    if avgSpeed >= 0
+        timeSum += timeDiff
+        distSum += dist
+        overallSpeed = distSum / timeSum * 3.6
+        update_current_recording_speed(overallSpeed)
+        update_current_recording_route_dist(distSum)
+    
     #avgSpeed = Math.random() * 50
     color = 'black'
     for routeVisColor in routeVisualizationColors.cycling

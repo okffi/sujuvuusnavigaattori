@@ -74,9 +74,10 @@ defaults =
     osm_notes_url: "http://api.openstreetmap.org/api/0.6/notes.json"
     faye_url: "http://dev.hsl.fi:9002/faye"
     recorder_login_url: recorder_base_url + "auth/login"
-    recorder_trace_seq_url: recorder_base_url + "trace_seqs"
+    recorder_get_trace_url: recorder_base_url + "get_trace"
     recorder_get_route_url: recorder_base_url + "get_route"
-    recorder_get_fluency_url: recorder_base_url + "get_fluency" 
+    recorder_get_fluency_url: recorder_base_url + "get_fluency"
+    recorder_trace_seq_url: recorder_base_url + "store_data"
 
     icon_base_path: "static/images/"
 

@@ -7,6 +7,7 @@
 #
 
 {
+    recorder_get_trace_url
     recorder_get_route_url
     recorder_get_fluency_url
 } = citynavi.config
@@ -26,6 +27,7 @@ info.update =  ->
         console.log "creating div"
         html += '<div><span style="color:' + color.color + ';">&#9608; ' +
             color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
+    html += '<div><span style="color:' + '#000' + ';">&#9608; GPS' 
 
     console.log html
 
@@ -33,6 +35,7 @@ info.update =  ->
                                     
 
 geoJsonFeatureGroup = null
+traceLine = null
 
 BAD_NAMES = [ "", " " ]
 
@@ -60,10 +63,28 @@ $('#my-routes').bind 'pageshow', (e, data) ->
             # show start and finish address via okf.fi if avail otherwise fall back to otp
             name_from = get_good_name record.from.name.okf, record.from.name.otp, record.from.location.lat, record.from.location.lng
             name_to = get_good_name record.to.name.okf, record.to.name.otp, record.to.location.lat, record.to.location.lng
+            durationText = ""
+            if record.endTime?
+                diff = moment(record.endTime).unix() - moment(record.date).unix()
+                duration = moment().startOf('day').add('s', diff)
+                format = ""
+                if duration.hour() > 0
+                    format += "H [hours] "
+                if duration.minute() > 0
+                    format += "m [min] "
+                durationText = duration.format(format)
+            
             li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
-                "<h3>" + name_from + " &#8594; " +
-                name_to + "</h3>" +
-                "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") +
+                "<p><b>" + name_from + " &#8594; " + name_to +
+                ", Duration: " + durationText +
+                "</b></p>" +
+                "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
+                "<p>" + 
+                "Avg. speed: " + record.avgSpeed.toFixed(1) + "km/h" +
+                ", on route / GPS distance: " +
+                (record.recordedRouteDistance / 1000).toFixed(1) +
+                " / " + (record.rawDistance / 1000).toFixed(1) +
+                " km" +
                 "</p></a></li>"
             console.log li_content
             $list.append(li_content)
@@ -84,40 +105,63 @@ $(document).bind 'pagebeforechange', (e, data) ->
     if u.hash.indexOf("my-route?id=") != -1
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
-        $.getJSON recorder_get_route_url, { id: id }, (data) =>
-            if data?
-                geoJsonFeatureGroup = L.featureGroup();
-                
-                for route_vector in data
-                    color = 'black'
-                    routeVisualizationColors = window.routeVisualizationColors
-                    for routeVisColor in routeVisualizationColors.cycling
-                        if route_vector.speed >= routeVisColor.lowerSpeedLimit
-                            if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
-                                color = routeVisColor.color
-                                break
-                    
-                    geoJsonLayer = L.geoJson(route_vector.geom,
-                        style:
-                            "color": color,
-                            "opacity": 0.8
-                        )
-                    geoJsonFeatureGroup.addLayer(geoJsonLayer);
 
-                geoJsonFeatureGroup.addTo(window.map_dbg)
-
-            $('#my-route').bind 'pagebeforehide', (e, o) ->
-                console.log "removing geoJsonLayers"
-                if geoJsonFeatureGroup?
-                    window.map_dbg.removeLayer geoJsonFeatureGroup
-                    geoJsonFeatureGroup = null
-                if window.speedLegend?
-                    window.map_dbg.removeControl window.speedLegend
-                    window.speedLegend = undefined
+        get_route_data(id)
+        get_trace_data(id)
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
             window.speedLegend = info
+
+        $('#my-route').bind 'pagebeforehide', (e, o) ->
+            console.log "removing geoJsonLayers"
+            if geoJsonFeatureGroup?
+                window.map_dbg.removeLayer geoJsonFeatureGroup
+                geoJsonFeatureGroup = null
+            if traceLine?
+                window.map_dbg.removeLayer traceLine
+                traceLine = null
+            if window.speedLegend?
+                window.map_dbg.removeControl window.speedLegend
+                window.speedLegend = undefined
+
+
+get_trace_data = (id) ->
+    $.getJSON recorder_get_trace_url, { id: id }, (data) ->
+        if data?
+            console.log data
+            #TODO draw trace
+            traceLine = L.polyline([], { color: 'black', transparency: 0.8 })
+            for trace in data
+                traceLine.addLatLng([trace.geom.coordinates[1], trace.geom.coordinates[0]])
+            traceLine.addTo(window.map_dbg).bringToBack()
+
+            $('#my-route').bind 'pagebeforehide', (e, o) ->
+        else console.log "no trace data"
+        
+get_route_data = (id) ->
+    $.getJSON recorder_get_route_url, { id: id }, (data) ->
+        if data?
+            console.log data
+            geoJsonFeatureGroup = L.featureGroup();
+                
+            for route_vector in data
+                color = 'black'
+                routeVisualizationColors = window.routeVisualizationColors
+                for routeVisColor in routeVisualizationColors.cycling
+                    if route_vector.speed >= routeVisColor.lowerSpeedLimit
+                        if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
+                            color = routeVisColor.color
+                            break
+                    
+                geoJsonLayer = L.geoJson(route_vector.geom,
+                    style:
+                        "color": color,
+                        "opacity": 0.8
+                )
+                geoJsonFeatureGroup.addLayer(geoJsonLayer);
+
+            geoJsonFeatureGroup.addTo(window.map_dbg)
 
 $('#my-route').bind 'pageshow', (e, data) ->
     console.log "my-route pageshow"
