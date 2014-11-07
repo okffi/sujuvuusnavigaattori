@@ -42,8 +42,6 @@ Libraries used: jQuery Mobile, Leaflet, Backbone.js, Moment.js
 Node.js with NPM 1.2 or newer is required to build the project. For
 Ubuntu 14.04 LTS, this can be acquired with
 `sudo add-apt-repository ppa:chris-lea/node.js` followed by `sudo apt-get install nodejs`.
-If for some reason you want to build and install Node.js from sources see:
-https://github.com/HSLdevcom/hsl-navigator/wiki/Building-node-from-sources
 
 After installing Node.js go to the directory where you want to install the City Navigator.
 There, run `git clone https://github.com/okffi/sujuvuusnavigaattori.git`. 
