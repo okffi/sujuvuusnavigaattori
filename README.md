@@ -21,14 +21,14 @@ Open Data used:
 <li>OpenStreetMap
 <li>Public transport timetables by
     <ul>
-    <li>[Oulunliikenne](http://www.oulunjoukkoliikenne.fi/english)
-    <li>[Helsinki Region Transport](https://www.hsl.fi/en)
-    <li>[Tampereen Joukkoliikenne](http://joukkoliikenne.tampere.fi/en/) via [ITS Factory](http://www.hermiagroup.fi/its-factory/)
+    <li><a href="http://www.oulunjoukkoliikenne.fi/english">Oulunliikenne</a>
+    <li><a href="https://www.hsl.fi/en">Helsinki Region Transport</a>
+    <li><a href="http://joukkoliikenne.tampere.fi/en/">Tampereen Joukkoliikenne</a> via <a href="http://www.hermiagroup.fi/its-factory/">ITS Factory</a>
     </ul>
-<li>Geocoding / street address data via [OKF.fi Geocoder API](https://github.com/rekola/okffi-geocoder) utilizing
+<li>Geocoding / street address data via <a href="https://github.com/rekola/okffi-geocoder">OKF.fi Geocoder API</a> utilizing
     <ul>
-    <li>[The National Land Survey (NLS) topographic data](http://www.maanmittauslaitos.fi/en/opendata)
-    <li>[Itella basic address file](http://www.itella.fi/english/servicesandproducts/postalcodeservices/basicaddressfile.html)
+    <li><a href="http://www.maanmittauslaitos.fi/en/opendata">The National Land Survey (NLS) topographic data</a>
+    <li><a href="http://www.itella.fi/english/servicesandproducts/postalcodeservices/basicaddressfile.html">Itella basic address file</a>
     </ul>
 </ul>
 
