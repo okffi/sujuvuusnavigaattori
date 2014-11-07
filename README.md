@@ -98,7 +98,7 @@ heading | real | false | false
 Plans:
 
 name | type | notnull | pk
----- | ---- | ------- | --
+---- | ---- | ------- | ---
 id | integer | true | true
 session_id | text | true | false
 max_walk_distance | integer | true | false
