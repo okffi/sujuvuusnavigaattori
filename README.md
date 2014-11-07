@@ -101,8 +101,8 @@ name | type | notnull | pk
 id | integer | true | true
 session_id | text | true | false
 max_walk_distance | integer | true | false
-from_place | real | true | false
-to_place | real | true | false
+from_place | point | true | false
+to_place | point | true | false
 min_transfer_time | real | true | false
 walk_speed | real | true | false
 mode | text | true | false
