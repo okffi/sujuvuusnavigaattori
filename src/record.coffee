@@ -1,6 +1,7 @@
 {
     recorder_login_url
-    recorder_trace_seq_url
+    recorder_post_route_url
+    recorder_post_plan_url
     google_url
 } = citynavi.config
 
@@ -80,11 +81,51 @@ start_recording = ->
     reset_routing_data()
     delete_trace_seq()
     store_recording_id(uniqueId(36))
+    send_plan_to_server()
     window.rawline = new L.Polyline([], { color: 'black', opacity: 0.4 }).addTo(window.map_dbg)
     window.routelines = []
 
     window.powerManagement.acquireWakeLock () -> 
         wakelocked = true
+
+send_plan_to_server = ->
+    window.route_dbg
+
+    from_latlng = window.route_dbg.requestParameters.fromPlace.split(',')
+    to_latlng = window.route_dbg.requestParameters.toPlace.split(',')
+    payload =
+        session_id: get_recording_id()
+        max_walk_distance: window.route_dbg.requestParameters.maxWalkDistance
+        from_place:
+            lat: parseFloat(from_latlng[0])
+            lng: parseFloat(from_latlng[1])
+        to_place:
+            lat: parseFloat(to_latlng[0])
+            lng: parseFloat(to_latlng[1])
+        min_transfer_time: window.route_dbg.requestParameters.minTransferTime
+        walk_speed: window.route_dbg.requestParameters.walkSpeed
+        mode: window.route_dbg.requestParameters.mode
+        timestamp: window.route_dbg.plan.date
+    
+    console.log('going to POST data to server')
+    console.log(payload)
+    jqxhr = $.ajax({
+        url: recorder_post_plan_url
+        data: JSON.stringify(payload)
+        contentType: 'application/json'
+        type: 'POST'
+        }).done((d) ->
+            console.log('plan response:')
+            console.log(d)
+        ).fail((jqXHR, textStatus, errorThrown) ->
+            console.log(jqXHR)
+            console.log(textStatus)
+            console.log(errorThrown)
+            # TODO store
+            # FIXME: Only save for sensible errors, like timeout.
+         )
+         
+
     
 # React to user input.
 $('#flip-record').on 'change', () ->
@@ -318,7 +359,6 @@ form_raw_trace = (e) ->
     trace =
         timestamp: get_timestamp()
         speed: if e.speed? then e.speed else null
-        mode: window.route_dbg.requestParameters.mode
         location:
             altitude: if e.altitude? then e.altitude else null
             aaccuracy: if e.altitudeAccuracy? then e.altitudeAccuracy else null
@@ -458,7 +498,7 @@ send_data_to_server = (speed, points) ->
     console.log('going to POST data to server')
     console.log(payload)
     jqxhr = $.ajax({
-        url: recorder_trace_seq_url
+        url: recorder_post_route_url
         data: JSON.stringify(payload)
         contentType: 'application/json'
         type: 'POST'
