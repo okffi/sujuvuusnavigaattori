@@ -96,6 +96,7 @@ alt_accuracy | real | false | false
 heading | real | false | false
 
 Plans:
+
 name | type | notnull | pk
 ---- | ---- | ------- | --
 id | integer | true | true
