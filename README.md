@@ -102,6 +102,7 @@ id | integer | true | true
 session_id | text | true | false
 max_walk_distance | integer | true | false
 from_place | real | true | false
+to_place | real | true | false
 min_transfer_time | real | true | false
 walk_speed | real | true | false
 mode | text | true | false
