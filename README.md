@@ -2,14 +2,15 @@
 
 A bit like a car navigator but for cycling and for finding the best cycling routes in realtime, based on Open Data.
 
-Sujuvuusnavigaattori hopes to help one to find the best cycling routes, for example from home to work place. To do this it records location data from mobile phone client application to server when one is cycling. The client application includes navigator and it is heavily based on City Navigator proto https://github.com/HSLdevcom/navigator-proto by HSLdevcom.
+Sujuvuusnavigaattori helps one to find the best cycling routes, for example from home to work place. To do this it records location data from mobile phone client application to server when one is cycling. The cycler as well as other cyclers can then see fluency visualization that is formed from the cyclers' recorded data in realtime. The cycler can also see her/his own recorded routes later. The client application includes navigator and is heavily based on City Navigator proto https://github.com/HSLdevcom/navigator-proto by HSLdevcom.
 
 To see the Sujuvuusnavigaattori running visit: http://sujuvuusnavigaattori.okf.fi/
 There is also more general info in Finnish available at [Sujuvuuspilotti](http://fi.okfn.org/projects/sujuvuuspilotti/) page.
 
 Main use cases:
+
 1. While navigating cycler records cycled route with speed data and shares it, so that cyclers can use the data to plan cycling routes.
-2. Cycler wants to share fluency data on street vectors from the navigator in realtime, so that cyclers can use the data for route planning right a way.
+2. Cycler wants to share fluency data on streets from the navigator in realtime, so that cyclers can use the data for route planning right a way.
 
 The project is directly connected to two other projects:
 * https://github.com/okffi/sujuvuusnavigaattori-server
