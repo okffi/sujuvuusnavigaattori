@@ -55,7 +55,7 @@ hsl_colors =
 
 hel_geocoder_base_url = "http://dev.hel.fi/geocoder/v1/"
 hel_servicemap_base_url = "http://www.hel.fi/palvelukarttaws/rest/v2/"
-recorder_base_url = "http://nano.hannes.dy.fi/recorder-server/"
+recorder_base_url = "http://maas.okf.fi/"
 
 
 # Configuration data in plain objects.
@@ -74,7 +74,11 @@ defaults =
     osm_notes_url: "http://api.openstreetmap.org/api/0.6/notes.json"
     faye_url: "http://dev.hsl.fi:9002/faye"
     recorder_login_url: recorder_base_url + "auth/login"
-    recorder_trace_seq_url: recorder_base_url + "trace_seqs"
+    recorder_get_trace_url: recorder_base_url + "get_trace"
+    recorder_get_route_url: recorder_base_url + "get_route"
+    recorder_get_fluency_url: recorder_base_url + "get_fluency"
+    recorder_post_route_url: recorder_base_url + "store_data"
+    recorder_post_plan_url: recorder_base_url + "store_plan"
 
     icon_base_path: "static/images/"
 
@@ -141,7 +145,7 @@ helsinki =
     bbox_ne: [70.09, 31.58]
     bbox_sw: [59.50, 19.11]
     center: [64.795, 25.345]
-    otp_base_url: "http://144.76.78.72/otp/routers/default/"
+    otp_base_url: "http://otp.okf.fi/otp/routers/default/"
     siri_url: "http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL"
     poi_muni_id: null # XXX is this ok?
     waag_id: ""
