@@ -438,8 +438,8 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     route_points = get_route_points(previous_crossing_latlng, crossing_latlng)
     console.log route_points
     dist = 0
-    for i in [0..route_points.length - 1]
-        dist += get_distance(route_points[0][0], route_points[0][1], route_points[1][0], route_points[1][1]) 
+    for i in [0...route_points.length - 1]
+        dist += get_distance(route_points[i][0], route_points[i][1], route_points[i+1][0], route_points[i+1][1]) 
     avgSpeed = -1
     if timeDiff > 0
         avgSpeed = dist / timeDiff * 3.6 # kmh
