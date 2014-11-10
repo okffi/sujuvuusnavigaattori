@@ -67,43 +67,5 @@ Detail info at https://help.github.com/articles/fork-a-repo/
 
 ## Database schema ##
 
-The [Sujuvuusnavigaattori server](https://github.com/okffi/sujuvuusnavigaattori-server) stores fluency related data in following db tables:
+See [Sujuvuusnavigaattori server](https://github.com/okffi/sujuvuusnavigaattori-server).
 
-Routes:
-
-name | type | notnull | pk
---------| ------ | --------- | --------
-id | integer | true | true
-session_id | text | true | false
-timestamp | text | true | false
-speed | real | true | false
-geom | linestring | true | false
-mode | text | true | false
-
-Traces:
-
-name | type | notnull | pk
--------- | ----- | --------- | ---------
-id | integer | true | true
-session_id | text | true | false
-timestamp | text | true | false
-geom| point | true | false
-accuracy| integer | false | false
-speed| real | false | false
-altitude|real| false | false
-alt_accuracy | real | false | false
-heading | real | false | false
-
-Plans:
-
-name | type | notnull | pk
----- | ---- | ------- | ---
-id | integer | true | true
-session_id | text | true | false
-max_walk_distance | integer | true | false
-from_place | point | true | false
-to_place | point | true | false
-min_transfer_time | real | true | false
-walk_speed | real | true | false
-mode | text | true | false
-timestamp | text | true | false
