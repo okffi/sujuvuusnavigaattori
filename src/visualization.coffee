@@ -10,6 +10,7 @@
     recorder_get_trace_url
     recorder_get_route_url
     recorder_get_fluency_url
+    recorder_get_traces_url
 } = citynavi.config
 
 info = L.control()
@@ -35,6 +36,7 @@ info.update =  ->
                                     
 
 geoJsonFeatureGroup = null
+tracesJsonFeatureGroup = null
 traceLine = null
 
 BAD_NAMES = [ "", " " ]
@@ -177,18 +179,24 @@ $(document).bind 'pagebeforechange', (e, data) ->
     u = $.mobile.path.parseUrl(data.toPage)
     console.log "url ", u
     if u.hash.indexOf("fluency-page") != -1
+        $.getJSON recorder_get_traces_url, (data) =>
+            console.log "traces", data
+            if data?
+                tracesJsonFeatureGroup = L.featureGroup();
+                for trace_line in data
+                    geoJsonLayer = L.geoJson(trace_line,
+                        style:
+                            "color": 'black',
+                            "opacity": 0.5
+                    )
+                    tracesJsonFeatureGroup.addLayer(geoJsonLayer)
+                tracesJsonFeatureGroup.addTo(window.map_dbg)
+                                                                                                
         console.log "making fluency data request to " + recorder_get_fluency_url
         $.getJSON recorder_get_fluency_url, (data) =>
             console.log data
             if data?
                 geoJsonFeatureGroup = L.featureGroup();
-#                for i in [0..data.length-1] by 1
-#                    for j in [i+1..data.length-1] by 1
-#                        if data[i].geom.coordinates[0][0] is data[j].geom.coordinates[0][0] and
-#                            data[i].geom.coordinates[0][1] is data[j].geom.coordinates[0][1] and
-#                            data[i].geom.coordinates[1][0] is data[j].geom.coordinates[1][0] and
-#                            data[i].geom.coordinates[1][1] is data[j].geom.coordinates[1][1]
-#                                console.log "found duplicate route vector"
 
                 for route_vector in data
                     color = 'black'
@@ -219,6 +227,9 @@ $('#fluency-page').bind 'pageshow', (e, data) ->
 
 $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
+    if tracesJsonFeatureGroup?
+        window.map_dbg.removeLayer tracesJsonFeatureGroup
+        tracesJsonFeatureGroup = null
     if geoJsonFeatureGroup?
         window.map_dbg.removeLayer geoJsonFeatureGroup
         geoJsonFeatureGroup = null

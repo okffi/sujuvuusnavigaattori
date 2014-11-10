@@ -117,15 +117,49 @@ send_plan_to_server = ->
         }).done((d) ->
             console.log('plan response:')
             console.log(d)
+            resend_failed_data_if_any()
         ).fail((jqXHR, textStatus, errorThrown) ->
             console.log(jqXHR)
             console.log(textStatus)
             console.log(errorThrown)
-            # TODO store
-            # FIXME: Only save for sensible errors, like timeout.
+            save_failed_send(recorder_post_plan_url, payload)
          )
          
+# If cannot send data to server, store it to later sending
+save_failed_send = (url, payload) ->
+    failed_send_data_string = localStorage['failed_send_data']
 
+    failed_send_data = null
+    if failed_send_data_string?
+        failed_send_data = JSON.parse(failed_send_data_string)
+    else
+        failed_send_data = []
+    failed_send =
+        url: url
+        payload: payload
+    failed_send_data.push(failed_send)
+    localStorage['failed_send_data'] = JSON.stringify(failed_send_data)
+
+resend_failed_data_if_any = ->
+    failed_send_data_string = localStorage['failed_send_data']
+
+    if failed_send_data_string?
+        failed_send_data = JSON.parse(failed_send_data_string)
+        localStorage.removeItem('failed_send_data')
+        for data in failed_send_data
+            jqxhr = $.ajax({
+                url: data.url
+                data: JSON.stringify(data.payload)
+                contentType: 'application/json'
+                type: 'POST'
+            }).done((d) ->
+            ).fail((jqXHR, textStatus, errorThrown) ->
+                console.log(jqXHR)
+                console.log(textStatus)
+                console.log(errorThrown)
+                save_failed_send(data.url, data.payload)
+            )                                       
+        
     
 # React to user input.
 $('#flip-record').on 'change', () ->
@@ -505,14 +539,13 @@ send_data_to_server = (speed, points) ->
         }).done((d) ->
             console.log('trace response:')
             console.log(d)
+            resend_failed_data_if_any()
         ).fail((jqXHR, textStatus, errorThrown) ->
             console.log(jqXHR)
             console.log(textStatus)
             console.log(errorThrown)
-            # TODO store
-            # FIXME: Only save for sensible errors, like timeout.
-            # store_trace(trace)
-         )
+            save_failed_send(recorder_post_route_url, payload)
+        )
  
     
 get_route_points = (latlng_start, latlng_end) ->
