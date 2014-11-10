@@ -904,6 +904,15 @@ map.on 'zoomend', (e) ->
     $('#map').attr('class', "leaflet-container leaflet-fade-anim "+minzooms)
 
 $(document).ready () ->
+    if location.search?
+        if index = location.search.indexOf("destination=") != -1
+            destination = location.search.substring(index + 12, location.search.length)
+            if destination.indexOf(',') != -1
+                parts = destination.split(',')
+                lat = parts[0]
+                lng = parts[1]
+                target = new L.LatLng(parseFloat(lat), parseFloat(lng))
+                set_target_marker(target)
     resize_map()
     map.invalidateSize()
 
