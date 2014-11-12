@@ -133,7 +133,7 @@ get_trace_data = (id) ->
         if data?
             console.log data
             #TODO draw trace
-            traceLine = L.polyline([], { color: 'black', transparency: 0.8 })
+            traceLine = L.polyline([], { color: 'black', transparency: 0.5 })
             for trace in data
                 traceLine.addLatLng([trace.geom.coordinates[1], trace.geom.coordinates[0]])
             traceLine.addTo(window.map_dbg).bringToBack()
@@ -182,15 +182,17 @@ $(document).bind 'pagebeforechange', (e, data) ->
         $.getJSON recorder_get_traces_url, (data) =>
             console.log "traces", data
             if data?
+                data = cleanUpTraces(data)
                 tracesJsonFeatureGroup = L.featureGroup();
                 for trace_line in data
                     geoJsonLayer = L.geoJson(trace_line,
                         style:
                             "color": 'black',
                             "opacity": 0.5
+                        coordsToLatLng: cleanUpCoords
                     )
                     tracesJsonFeatureGroup.addLayer(geoJsonLayer)
-                tracesJsonFeatureGroup.addTo(window.map_dbg)
+                tracesJsonFeatureGroup.addTo(window.map_dbg).bringToBack()
                                                                                                 
         console.log "making fluency data request to " + recorder_get_fluency_url
         $.getJSON recorder_get_fluency_url, (data) =>
@@ -213,7 +215,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
                             "opacity": 0.8
                     )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer)
-                geoJsonFeatureGroup.addTo(window.map_dbg)
+                geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
 
 $('#fluency-page').bind 'pageshow', (e, data) ->
     console.log "fluency-page pageshow"
@@ -237,3 +239,34 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     if window.speedLegend?
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
+
+prevCoords = null
+
+cleanUpCoords = (coords) ->
+    
+    if coords[0] > coords[1]
+        coords = [coords[0], coords[1]]
+    else
+        coords = [coords[1], coords[0]]
+
+    coords
+
+cleanUpTraces = (data) ->
+    newData = []
+    for trace in data
+        prevCoordinate = null
+        newTrace =
+            type: "LineString"
+            coordinates: []
+        for coordinate in trace.coordinates
+            #coordinate[0] > coordinate[1]
+            if prevCoordinate?
+                if L.GeometryUtil.distance(window.map_dbg, L.latLng(coordinate), L.latLng(prevCoordinate)) < 20
+                    newTrace.coordinates.push(coordinate)
+                    prevCoordinate = coordinate
+            else
+                prevCoordinate = coordinate
+        if newTrace.coordinates.length >= 2
+            newData.push(newTrace)
+
+    newData
