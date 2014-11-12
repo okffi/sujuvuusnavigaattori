@@ -224,8 +224,11 @@ $('#fluency-page').bind 'pageshow', (e, data) ->
         info.addTo(window.map_dbg)
         window.speedLegend = info
 
-    location = citynavi.get_source_location_or_area_center()
-    window.map_dbg.setView(location, 12)
+    location = citynavi.get_source_location()
+    if location?
+        window.map_dbg.setView(location, 12)
+    else
+        window.map_dbg.setView([62.32, 24.75], 6)
 
 $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
@@ -239,8 +242,6 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     if window.speedLegend?
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
-
-prevCoords = null
 
 cleanUpCoords = (coords) ->
     
