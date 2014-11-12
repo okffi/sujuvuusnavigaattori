@@ -255,19 +255,28 @@ cleanUpCoords = (coords) ->
 cleanUpTraces = (data) ->
     newData = []
     for trace in data
-        prevCoordinate = null
         newTrace =
             type: "LineString"
             coordinates: []
-        for coordinate in trace.coordinates
-            #coordinate[0] > coordinate[1]
-            if prevCoordinate?
-                if L.GeometryUtil.distance(window.map_dbg, L.latLng(coordinate), L.latLng(prevCoordinate)) < 20
-                    newTrace.coordinates.push(coordinate)
-                    prevCoordinate = coordinate
-            else
-                prevCoordinate = coordinate
+        prevCoordinate = trace.coordinates[0]
+        if prevCoordinate[0] < prevCoordinate[1]
+            prevCoordinate = [prevCoordinate[1], prevCoordinate[0]]
+        for i in [1...trace.coordinates.length - 1]
+            coordinate = trace.coordinates[i]
+            if coordinate[0] < coordinate[1]
+                coordinate = [coordinate[1], coordinate[0]]
+            nextCoordinate = trace.coordinates[i + 1]
+            if nextCoordinate[0] < nextCoordinate[1]
+                nextCoordinate = [nextCoordinate[1], nextCoordinate[0]]
+            if L.GeometryUtil.distance(window.map_dbg, L.latLng(coordinate), L.latLng(prevCoordinate)) < 20 and
+                L.GeometryUtil.distance(window.map_dbg, L.latLng(coordinate), L.latLng(nextCoordinate)) < 20
+                    newTrace.coordinates.push(swapCoordinate(coordinate))
+            prevCoordinate = coordinate
+
         if newTrace.coordinates.length >= 2
             newData.push(newTrace)
 
     newData
+
+swapCoordinate = (coordinate) ->
+    [coordinate[1], coordinate[0]]
