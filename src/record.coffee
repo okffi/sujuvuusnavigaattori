@@ -433,16 +433,12 @@ form_route_trace = (e) ->
         console.log "no previous crossing"
         previous_crossing_latlng = crossing_latlng
 
+    was_on_route = true
+
     if previous_good_location_timestamp?
-        if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
+        if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) <= MAX_TRACK_ERROR_DIST
             if moment(get_timestamp()).unix() - moment(previous_good_location_timestamp).unix() > MAX_TIME_BETWEEN_ROUTE_POINTS
-                console.log "was too far too long, resetting crossing"
-                previous_good_location_timestamp = get_timestamp()
-                previous_crossing_latlng = crossing_latlng
-                delete_trace_seq()
-                trace = form_raw_trace(e)
-                store_trace trace
-                return
+                was_on_route = false
                 
     previous_good_location_timestamp = get_timestamp()
 
@@ -454,14 +450,14 @@ form_route_trace = (e) ->
     if crossing_latlng.lat isnt previous_crossing_latlng.lat or crossing_latlng.lng isnt previous_crossing_latlng.lng
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) < NEAR_CROSSING_MAX_DIST
             console.log "very near to crossing"
-            create_fluency_data(previous_crossing_latlng, crossing_latlng)
+            create_fluency_data(previous_crossing_latlng, crossing_latlng, was_on_route)
             update_current_recording_endTime(get_timestamp())
             delete_trace_seq()
             trace = form_raw_trace(e)
             store_trace trace
             previous_crossing_latlng = crossing_latlng
 
-create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
+create_fluency_data = (previous_crossing_latlng, crossing_latlng, was_on_route) ->
     speedSum = 0
     speedCount = 0
     trace_seq = get_trace_seq()
@@ -496,7 +492,7 @@ create_fluency_data = (previous_crossing_latlng, crossing_latlng) ->
     console.log color
     # Send to server if speed succesfully calculated
     if avgSpeed > 0
-        send_data_to_server(avgSpeed, route_points)
+        send_data_to_server(avgSpeed, route_points, was_on_route)
     # Draw speed to user
     routeLine = new L.Polyline(route_points, { color: color, opacity: 0.8 })
     window.routelines.push(routeLine)
@@ -519,7 +515,7 @@ get_distance = (lat1, lng1, lat2, lng2) ->
 deg2rad = (deg) ->
     deg * (Math.PI / 180)
                                                             
-send_data_to_server = (speed, points) ->
+send_data_to_server = (speed, points, was_on_route) ->
 
     payload =
         session_id: get_recording_id()
@@ -528,6 +524,7 @@ send_data_to_server = (speed, points) ->
         mode: window.route_dbg.requestParameters.mode
         points: points
         trace_seq: get_trace_seq()
+        was_on_route: was_on_route
     
     console.log('going to POST data to server')
     console.log(payload)
