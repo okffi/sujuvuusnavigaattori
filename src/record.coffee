@@ -425,13 +425,13 @@ form_route_trace = (e) ->
     crossing_latlng = find_nearest_route_crossing_point(e.latlng)
     route_latlng = find_nearest_route_point(e.latlng)
 
-    if L.GeometryUtil.distance(window.map_dbg, e.latlng, route_latlng) > MAX_TRACK_ERROR_DIST
-        console.log "too far to track"
-        return
-
     if not previous_crossing_latlng?
         console.log "no previous crossing"
         previous_crossing_latlng = crossing_latlng
+
+    if L.GeometryUtil.distance(window.map_dbg, e.latlng, route_latlng) > MAX_TRACK_ERROR_DIST
+        console.log "too far to track"
+        return
 
     was_on_route = true
 
