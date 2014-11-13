@@ -436,7 +436,7 @@ form_route_trace = (e) ->
     was_on_route = true
 
     if previous_good_location_timestamp?
-        if L.GeometryUtil.distance(window.map_dbg, e.latlng, crossing_latlng) <= MAX_TRACK_ERROR_DIST
+        if L.GeometryUtil.distance(window.map_dbg, e.latlng, route_latlng) <= MAX_TRACK_ERROR_DIST
             if moment(get_timestamp()).unix() - moment(previous_good_location_timestamp).unix() > MAX_TIME_BETWEEN_ROUTE_POINTS
                 was_on_route = false
                 
