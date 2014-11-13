@@ -409,12 +409,8 @@ reset_routing_data = ->
     timeSum = 0
     distSum = 0
     rawDistSum = 0
-        
-previous_crossing_latlng = null
-previous_good_location_timestamp = null
-timeSum = 0
-distSum = 0
-rawDistSum = 0
+    was_on_route = true
+    
 
 form_route_trace = (e) ->
     # If current location past crossing then calculate avg. speed between that crossing and previous one and send to server
@@ -432,8 +428,6 @@ form_route_trace = (e) ->
     if L.GeometryUtil.distance(window.map_dbg, e.latlng, route_latlng) > MAX_TRACK_ERROR_DIST
         console.log "too far to track"
         return
-
-    was_on_route = true
 
     if previous_good_location_timestamp?
         if L.GeometryUtil.distance(window.map_dbg, e.latlng, route_latlng) <= MAX_TRACK_ERROR_DIST
@@ -456,6 +450,7 @@ form_route_trace = (e) ->
             trace = form_raw_trace(e)
             store_trace trace
             previous_crossing_latlng = crossing_latlng
+            was_on_route = true
 
 create_fluency_data = (previous_crossing_latlng, crossing_latlng, was_on_route) ->
     speedSum = 0
