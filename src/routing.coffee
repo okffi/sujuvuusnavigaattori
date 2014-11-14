@@ -723,7 +723,7 @@ handle_vehicle_update = (initial, msg) ->
 # Route_layer is needed to resize the map when info is added to the footer here.
 # polylines contains graphical representation of the itienary legs.
 render_route_buttons = ($list, itinerary, route_layer, polylines, max_duration) ->
-    trip_duration = itinerary.duration
+    trip_duration = itinerary.duration * 1000
     trip_start = itinerary.startTime
 
     length = itinerary.legs.length + 1 # Include space for the "Total" button.
@@ -773,7 +773,7 @@ render_route_buttons = ($list, itinerary, route_layer, polylines, max_duration) 
 
 # GoodEnoughJourneyPlanner style:
         leg_start = (leg.startTime-trip_start)/trip_duration
-        leg_duration = leg.duration/trip_duration
+        leg_duration = leg.duration*1000/trip_duration
         leg_label = "<img src='static/images/#{icon_name}' height='100%' />"
 
         # for long non-transit legs, display distance in place of route
@@ -904,6 +904,15 @@ map.on 'zoomend', (e) ->
     $('#map').attr('class', "leaflet-container leaflet-fade-anim "+minzooms)
 
 $(document).ready () ->
+    if location.search?
+        if index = location.search.indexOf("destination=") != -1
+            destination = location.search.substring(index + 12, location.search.length)
+            if destination.indexOf(',') != -1
+                parts = destination.split(',')
+                lat = parts[0]
+                lng = parts[1]
+                target = new L.LatLng(parseFloat(lat), parseFloat(lng))
+                set_target_marker(target)
     resize_map()
     map.invalidateSize()
 

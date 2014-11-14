@@ -1,42 +1,50 @@
-## City Navigator proto ##
+# Sujuvuusnavigaattori
 
-Like a car navigator but for taking public transport, based on Open Data.
+A bit like a car navigator but for cycling and for finding the best cycling routes in realtime, based on Open Data.
 
-Demo installation at http://dev.hsl.fi/navigator-proto
+Sujuvuusnavigaattori helps one to find the best cycling routes, for example from home to work place. To do this it records location data from mobile phone client application to server when one is cycling. The cycler as well as other cyclers can then see fluency visualization that is formed from the cyclers' recorded data in realtime. The cycler can also see her/his own recorded routes later. The client application includes navigator and is heavily based on City Navigator proto https://github.com/HSLdevcom/navigator-proto by HSLdevcom.
 
-Use cases:
-1. Type in a destination address and get directions from the current location.
-2. Choose a public service by category and get directions to closest premises.
-3. Browse a map and tap a location to get directions.
+To see the Sujuvuusnavigaattori running visit: http://sujuvuusnavigaattori.okf.fi/
+There is also more general info in Finnish available at [Sujuvuuspilotti](http://fi.okfn.org/projects/sujuvuuspilotti/) page.
 
-Features:
-* Current location is queried from the device automatically.
-* Destination addresses are completed as you type.
-* Current location is updated on the map as the device moves.
-* Directions can be updated by tapping the current location.
+Main use cases:
+
+1. While navigating cycler records cycled route with speed data and shares it, so that cyclers can use the data to plan cycling routes.
+2. Cycler wants to share fluency data on streets from the navigator in realtime, so that cyclers can use the data for route planning right a way.
+
+The project is directly connected to two other projects:
+* https://github.com/okffi/sujuvuusnavigaattori-server
+* https://github.com/okffi/sujuvuusnavigaattori-wrapper
 
 Open Data used:
-* OpenStreetMap
-* Public transport timetables by Helsinki Region Transport
-* Service Map by City of Helsinki
-* House address database by City of Helsinki
+<ul>
+<li>OpenStreetMap
+<li>Public transport timetables by
+    <ul>
+    <li><a href="http://www.oulunjoukkoliikenne.fi/english">Oulunliikenne</a>
+    <li><a href="https://www.hsl.fi/en">Helsinki Region Transport</a>
+    <li><a href="http://joukkoliikenne.tampere.fi/en/">Tampereen Joukkoliikenne</a> via <a href="http://www.hermiagroup.fi/its-factory/">ITS Factory</a>
+    </ul>
+<li>Geocoding / street address data via <a href="https://github.com/rekola/okffi-geocoder">OKF.fi Geocoder API</a> utilizing
+    <ul>
+    <li><a href="http://www.maanmittauslaitos.fi/en/opendata">The National Land Survey (NLS) topographic data</a>
+    <li><a href="http://www.itella.fi/english/servicesandproducts/postalcodeservices/basicaddressfile.html">Itella basic address file</a>
+    </ul>
+</ul>
 
 Technologies used: HTML5, Geolocation, Local storage
 
 Libraries used: jQuery Mobile, Leaflet, Backbone.js, Moment.js
 
-[![Build Status](https://secure.travis-ci.org/codeforeurope/navigator-proto.png)](http://travis-ci.org/codeforeurope/navigator-proto)
 
 ## Getting started ##
 
 Node.js with NPM 1.2 or newer is required to build the project. For
-Ubuntu 12.04 LTS, this can be acquired with
+Ubuntu 14.04 LTS, this can be acquired with
 `sudo add-apt-repository ppa:chris-lea/node.js` followed by `sudo apt-get install nodejs`.
-If for some reason you want to build and install Node.js from sources see:
-https://github.com/HSLdevcom/hsl-navigator/wiki/Building-node-from-sources
 
 After installing Node.js go to the directory where you want to install the City Navigator.
-There, run `git clone https://github.com/codeforeurope/navigator-proto.git`. 
+There, run `git clone https://github.com/okffi/sujuvuusnavigaattori.git`. 
 
 In the navigator-proto directory install dependencies with `npm install`.
 
@@ -47,60 +55,17 @@ http://localhost:9001/ with your web browser.
 Or, install build tool with `npm install grunt-cli` and run dev server with
 `node_modules/.bin/grunt server`.
 
-If you encounter errors, you may want to run commands `sudo apt-get dist-upgrade` and
-`sudo apt-get update` to make sure everything is up-to-date.
+## Github use best practice for Sujuvuusnavigaattori project
 
-You may want to change some settings, for example the city where the navigating is
-supposed to happen. To do so, run
-`cp src/local_config.coffee.template src/local_config.coffee` and modify
-`src/local_config.coffee` according to the comments within the file.
+1. Fork the repo 
+2. Create a new feature branch for your work 
+3. Submit an empty pull request from your branch to the main repo to show you have work in progress. Start the name of the pull request with "WIP: " 
+4. Push your commits to your branch as you work
+5. With last push, remove "WIP"-comment, and give unit test result instead.
 
-## Running tests ##
+Detail info at https://help.github.com/articles/fork-a-repo/
 
-Install testem with `sudo npm install -g testem coffee-script`. Install
-the headless browser Phantomjs with `sudo apt-get install phantomjs`.
+## Database schema ##
 
-Run tests with `grunt test`.
+See [Sujuvuusnavigaattori server](https://github.com/okffi/sujuvuusnavigaattori-server).
 
-### Local desktop browsers ###
-
-To test on Firefox and Chromium, run `grunt test-desktop`.
-
-To test on a different set of browsers, you can edit the option
-`testem.desktop.options.launch_in_ci` in `Gruntfile.coffee`.
-
-### Mobile browsers at Saucelabs ###
-
-Tests can be run on mobile browsers at SauceLabs. (Unfortunately, the current
-SauceLabs integration for testem is mostly just a hack and that's why
-the current experience is quite poor.)
-
-Install saucelauncher from source with `sudo npm install -g saucelauncher`.
-
-Add `~/.saucelabs.json` in a format:
-
-```json
-{
-    "username": "mysaucelabsuserid",
-    "api_key": "mysecretsaucelabsapikey"
-}
-```
-
-Run tests with `grunt test-mobile`.
-
-## Writing tests ##
-
-Run `grunt test` at least once before (to generate working `testem.json`).
-
-Start watching test environment with `testem`.
-
-Follow instructions on screen to register browser with testem.
-
-Edit test below `./tests`. Tests are run when changes in test suites are
-detected.
-
-## Running Robot Framework tests ##
-
-Run ``python bootstrap.py --version 2.1.1`` and ``bin/buildout``.
-
-Run ``grunt test-robot-desktop``.
