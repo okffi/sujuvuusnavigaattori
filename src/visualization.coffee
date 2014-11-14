@@ -243,6 +243,48 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
 
+$(document).bind 'pagebeforechange', (e, data) ->
+    if typeof data.toPage != "string"
+        return
+    console.log data
+    u = $.mobile.path.parseUrl(data.toPage)
+    console.log "url ", u
+    vehicle_mode = $("input:checked[name=vehiclesettings]").val()
+    if u.hash.indexOf("map-page") != -1 and vehicle_mode is "BICYCLE"
+        console.log "making fluency data request to " + recorder_get_fluency_url
+        $.getJSON recorder_get_fluency_url, (data) =>
+            console.log data
+            if data?
+                geoJsonFeatureGroup = L.featureGroup();
+
+                for route_vector in data
+                    color = 'black'
+                    routeVisualizationColors = window.routeVisualizationColors
+                    for routeVisColor in routeVisualizationColors.cycling
+                        if route_vector.speed >= routeVisColor.lowerSpeedLimit
+                            if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
+                                color = routeVisColor.color
+                                break
+    
+                    geoJsonLayer = L.geoJson(route_vector.geom,
+                        style:
+                            "color": color,
+                            "opacity": 0.8
+                    )
+                    geoJsonFeatureGroup.addLayer(geoJsonLayer)
+                geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
+
+$('#map-page').bind 'pagebeforehide', (e, o) ->
+    if geoJsonFeatureGroup?
+        window.map_dbg.removeLayer geoJsonFeatureGroup
+        geoJsonFeatureGroup = null
+
+    if window.speedLegend?
+        window.map_dbg.removeControl window.speedLegend
+        window.speedLegend = undefined
+
+
+
 cleanUpCoords = (coords) ->
     
     if coords[0] > coords[1]
