@@ -80,6 +80,7 @@ defaults =
     recorder_get_traces_url: recorder_base_url + "get_traces"
     recorder_post_route_url: recorder_base_url + "store_data"
     recorder_post_plan_url: recorder_base_url + "store_plan"
+    recorder_post_trace_seq_url: recorder_base_url + "trace_seqs"
 
     icon_base_path: "static/images/"
 
