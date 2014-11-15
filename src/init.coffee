@@ -23,13 +23,13 @@ $(document).bind "mobileinit", ->
     # non-native inputs don't work in leaflet
     $.mobile.page.prototype.options.keepNative = "form input"
 
-# Show page loading message for user when making AJAX call and hide the message after (all)
-# AJAX requests have completed
-$(document).ajaxStart (e) ->
-    $.mobile.loading('show')
+    # Show page loading message for user when making AJAX call and hide the message after (all)
+    # AJAX requests have completed
+    $(document).ajaxStart (e) ->
+        $.mobile.loading('show')
 
-$(document).ajaxStop (e) ->
-    $.mobile.loading('hide')
+    $(document).ajaxStop (e) ->
+        $.mobile.loading('hide')
 
 class CityNavigator
     constructor: (opts) ->
