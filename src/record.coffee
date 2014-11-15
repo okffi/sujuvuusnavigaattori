@@ -402,6 +402,12 @@ form_raw_trace = (e) ->
                 lat: ll.lat
                 lng: ll.lng
 
+previous_crossing_latlng = null
+previous_good_location_timestamp = null
+timeSum = 0
+distSum = 0
+rawDistSum = 0
+was_on_route = true
 
 reset_routing_data = ->
     previous_crossing_latlng = null
