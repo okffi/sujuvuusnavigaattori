@@ -1230,9 +1230,9 @@ $('#navigation-page').on 'pagebeforehide', (e, o) ->
 
 
 speak_real = (text) ->
-    if meSpeak? and $('#use-speech').attr('checked')
+    if citynavi.config.meSpeak? and $('#use-speech').attr('checked')
         console.log("*** Speaking", text)
-        meSpeak.speak(text, {}, speak_callback)
+        citynavi.config.meSpeak.speak(text, {}, speak_callback)
     else
         console.log("*** Not speaking", text)
         speak_callback() # done immediately as doing nothing
