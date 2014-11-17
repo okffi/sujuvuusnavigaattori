@@ -66,6 +66,7 @@ stop_recording = ->
     if info?
         window.map_dbg.removeControl info
     window.speedLegend = undefined
+    send_trace_seq_to_server()
     if not window.route_dbg?
         finish_trace_recording()
     delete_recording_id()
@@ -94,7 +95,6 @@ start_recording = ->
 
 finish_trace_recording = ->
     update_current_recording_endTime(get_timestamp())
-    send_trace_seq_to_server()    
     # store and geolocate end place now
     trace_seq = get_trace_seq()
     if trace_seq?
@@ -114,7 +114,6 @@ finish_trace_recording = ->
             update_current_recording_gps_speed(avgGPSSpeed)
             
     # TODO    
-    # - when showing list of "my routes" take recording type into account
     # - show speed data as coloring for the raw trace
     # - test
 
