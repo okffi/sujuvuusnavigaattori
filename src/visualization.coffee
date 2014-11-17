@@ -9,6 +9,7 @@
 {
     recorder_get_trace_url
     recorder_get_route_url
+    recorder_get_plan_url
     recorder_get_fluency_url
     recorder_get_traces_url
 } = citynavi.config
@@ -107,9 +108,10 @@ $(document).bind 'pagebeforechange', (e, data) ->
     if u.hash.indexOf("my-route?id=") != -1
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
-
+        
         get_route_data(id)
         get_trace_data(id)
+        get_plan_data(id)
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
@@ -127,6 +129,12 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 window.map_dbg.removeControl window.speedLegend
                 window.speedLegend = undefined
 
+get_plan_data = (id) ->
+    $.getJSON recorder_get_plan_url, { id: id }, (data) ->
+        if data?
+            console.log JSON.parse(data)
+            planLine = L.polyline([], { color: "blue", opacity: 0.8, dashArray: "5, 10" })
+            window.layers_control.addOverlay(planLine, "Show route plan")
 
 get_trace_data = (id) ->
     $.getJSON recorder_get_trace_url, { id: id }, (data) ->
@@ -137,6 +145,7 @@ get_trace_data = (id) ->
             for trace in data
                 traceLine.addLatLng([trace.geom.coordinates[1], trace.geom.coordinates[0]])
             traceLine.addTo(window.map_dbg).bringToBack()
+            window.layers_control.addOverlay(traceLine, "Show GPS track")
 
             $('#my-route').bind 'pagebeforehide', (e, o) ->
         else console.log "no trace data"
@@ -164,6 +173,8 @@ get_route_data = (id) ->
                 geoJsonFeatureGroup.addLayer(geoJsonLayer);
 
             geoJsonFeatureGroup.addTo(window.map_dbg)
+            window.layers_control.addOverlay(geoJsonFeatureGroup, "Show fluency")
+
 
 $('#my-route').bind 'pageshow', (e, data) ->
     console.log "my-route pageshow"

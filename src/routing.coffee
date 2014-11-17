@@ -959,7 +959,7 @@ control_layers = {}
 for key, value of citynavi.config.maps
     control_layers[value.name] = layers[key]
 
-L.control.layers(control_layers,
+window.layers_control = L.control.layers(control_layers,
     "View map errors": osmnotes
 ).addTo(map)
 

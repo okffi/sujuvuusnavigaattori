@@ -76,6 +76,7 @@ defaults =
     recorder_login_url: recorder_base_url + "auth/login"
     recorder_get_trace_url: recorder_base_url + "get_trace"
     recorder_get_route_url: recorder_base_url + "get_route"
+    recorder_get_plan_url: recorder_base_url + "get_plan"
     recorder_get_fluency_url: recorder_base_url + "get_fluency"
     recorder_get_traces_url: recorder_base_url + "get_traces"
     recorder_post_route_url: recorder_base_url + "store_data"
