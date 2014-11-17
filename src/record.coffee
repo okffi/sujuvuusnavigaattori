@@ -2,6 +2,7 @@
     recorder_login_url
     recorder_post_route_url
     recorder_post_plan_url
+    recorder_post_trace_seq_url
     google_url
 } = citynavi.config
 
@@ -70,7 +71,7 @@ document.addEventListener("deviceready", () ->
     ,false)
 
 stop_recording = ->
-    if info?
+    if window.speedLegend?
         window.map_dbg.removeControl info
     window.speedLegend = undefined
     send_trace_seq_to_server()
@@ -245,7 +246,7 @@ $('#flip-record2').on 'change', () ->
 $('#flip-record3').on 'change', () ->
     flip_switch = $(@)
     record_on = flip_switch.val() == 'on'
-    $('#flip-record').val(flip_switch.val()).slider('refresh')
+    $('#flip-record3').val(flip_switch.val()).slider('refresh')
     if record_on
         console.log('recording switched to on')
         start_recording()
@@ -324,18 +325,20 @@ store_recording_id = (id) ->
                 type: "RAW"
                 date: get_timestamp()
                 endTime: null
-                rawDistance: 0
+                avgSpeed: -1
                 avgGPSSpeed: 0
+                recordedRouteDistance: -1
+                rawDistance: 0
                 from:
                     name:
-                        otp: null
+                        otp: undefined
                         okf: null
                     location:
                         lat: if location? then location[0] else null
                         lng: if location? then location[1] else null
                 to:
                     name:
-                        otp: null
+                        otp: undefined
                         okf: null
                     location:
                         lat: null
@@ -429,7 +432,7 @@ update_current_recording_to_place = (lat, lng) ->
                 record.to.location.lat = lat
                 record.to.location.lng = lng
                 localStorage['recordings'] = JSON.stringify(recordings)
-                reverse_geocode(lat, lng, handle_geo_result, [id, 'to'])
+                reverse_geocode(lat, lng, handle_geo_result, [record.id, 'to'])
                 break
 
 update_current_recording_gps_speed = (value) ->

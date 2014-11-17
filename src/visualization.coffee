@@ -78,6 +78,7 @@ $('#my-routes').bind 'pageshow', (e, data) ->
                 durationText = duration.format(format)
             li_content = null
             if record.type? and record.type is "RAW" # recording without navigation route
+                #console.log record
                 li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
                     "<p><b>" + name_from + " &#8594; " + name_to +
                     ", Duration: " + durationText +
@@ -122,12 +123,17 @@ $(document).bind 'pagebeforechange', (e, data) ->
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
 
-        recording = get_recording(id)
-        if recording?.type is "RAW"
-            get_trace_data(id)
-        else            
-            get_route_data(id)
-            get_trace_data(id)
+        recordings_string = localStorage['recordings']
+        if recordings_string?
+            recordings = JSON.parse(recordings_string)
+            for record in recordings
+                if record.id is id
+                    if recording?.type is "RAW"
+                        get_trace_data(id)
+                    else            
+                        get_route_data(id)
+                        get_trace_data(id)
+                    break
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
