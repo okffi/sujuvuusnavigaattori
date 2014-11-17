@@ -280,3 +280,9 @@ cleanUpTraces = (data) ->
 
 swapCoordinate = (coordinate) ->
     [coordinate[1], coordinate[0]]
+
+# plan.date is http://www.tutorialspoint.com/java/util/calendar_gettimeinmillis.htm but in seconds
+# plan date and time are formed via Date dateObject = DateUtils.toDate(date, time, tz);
+# DateUtils is in org.opentripplanner.util
+# tz is:
+# otpServer.graphService.getGraph(request.routerId).getTimeZone();
