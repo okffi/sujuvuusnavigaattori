@@ -16,6 +16,13 @@ NEAR_CROSSING_MAX_DIST = 10
 
 wakelocked = false
 
+previous_crossing_latlng = null
+previous_good_location_timestamp = null
+timeSum = 0
+distSum = 0
+rawDistSum = 0
+was_on_route = true
+
 routeVisualizationColors = {
     cycling: [{
         lowerSpeedLimit: 0,
