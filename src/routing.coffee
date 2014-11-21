@@ -214,7 +214,7 @@ format_time = (time) ->
 
 # Route received from OTP is encoded so it needs to be decoded.
 # translated from https://github.com/ahocevar/openlayers/blob/master/lib/OpenLayers/Format/EncodedPolyline.js
-decode_polyline = (encoded, dims) ->
+window.decode_otp_polyline = decode_polyline = (encoded, dims) ->
     # Start from origo
     point = (0 for i in [0...dims])
 
