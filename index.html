@@ -51,7 +51,12 @@
         <!-- Front page -->
         <div id="front-page" data-role="page">
             <div data-role="header" data-theme="b">
-                <h1>Sujuvuusnavigaattori</h1>
+                <h1 style="margin-bottom: 0;">Sujuvuusnavigaattori<br>
+                    <select name="flip-record" id="flip-record3" data-role="slider" data-mini="true" data-theme="b" data-track-theme="b">
+                        <option value="off" selected>Recording off</option>
+                        <option value="on">Recording on</option>
+                    </select>
+		</h1>
                 <!-- Settings button.
                      data-icon="gear" and class="ui-btn-right" are jQuery mobile specific -->
                 <a href="#front-page-menu" data-icon="menu" class="ui-btn-right" data-rel="popup" data-iconpos="notext" data-transition="slidedown">Menu</a>

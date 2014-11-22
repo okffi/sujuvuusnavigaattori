@@ -61,8 +61,9 @@ $('#my-routes').bind 'pageshow', (e, data) ->
     recordings_string = localStorage['recordings']
     if recordings_string?
         recordings = JSON.parse(recordings_string)
+        
         for record in recordings by -1 # list the latest recording first
-            # show start and finish address via okf.fi if avail otherwise fall back to otp
+            # show start and finish address via okf.fi if avail otherwise fall back to otp if avail            
             name_from = get_good_name record.from.name.okf, record.from.name.otp, record.from.location.lat, record.from.location.lng
             name_to = get_good_name record.to.name.okf, record.to.name.otp, record.to.location.lat, record.to.location.lng
             durationText = ""
@@ -75,22 +76,36 @@ $('#my-routes').bind 'pageshow', (e, data) ->
                 if duration.minute() > 0
                     format += "m [min] "
                 durationText = duration.format(format)
-            
-            li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
-                "<p><b>" + name_from + " &#8594; " + name_to +
-                ", Duration: " + durationText +
-                "</b></p>" +
-                "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
-                "<p>" + 
-                "Avg. speed: " + record.avgSpeed.toFixed(1) + "km/h" +
-                ", on route / GPS distance: " +
-                (record.recordedRouteDistance / 1000).toFixed(1) +
-                " / " + (record.rawDistance / 1000).toFixed(1) +
-                " km" +
-                "</p></a></li>"
+            li_content = null
+            if record.type? and record.type is "RAW" # recording without navigation route
+                #console.log record
+                li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
+                    "<p><b>" + name_from + " &#8594; " + name_to +
+                    ", Duration: " + durationText +
+                    "</b></p>" +
+                    "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
+                    "<p>" + 
+                    "Avg. speed: " + record.avgGPSSpeed.toFixed(1) + "km/h" +
+                    ", GPS distance: " +
+                    (record.rawDistance / 1000).toFixed(1) +
+                    " km" +
+                    "</p></a></li>"                    
+            else            
+                li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
+                    "<p><b>" + name_from + " &#8594; " + name_to +
+                    ", Duration: " + durationText +
+                    "</b></p>" +
+                    "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
+                    "<p>" + 
+                    "Avg. speed: " + record.avgSpeed.toFixed(1) + "km/h" +
+                    ", on route / GPS distance: " +
+                    (record.recordedRouteDistance / 1000).toFixed(1) +
+                    " / " + (record.rawDistance / 1000).toFixed(1) +
+                    " km" +
+                    "</p></a></li>"
             console.log li_content
             $list.append(li_content)
-            # TODO show also length, duration, avg.speed, name given by user if any
+            # TODO show also name given by user if any
     else
         $list.append("<li>No recorded routes yet</li>")
 
@@ -108,8 +123,17 @@ $(document).bind 'pagebeforechange', (e, data) ->
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
 
-        get_route_data(id)
-        get_trace_data(id)
+        recordings_string = localStorage['recordings']
+        if recordings_string?
+            recordings = JSON.parse(recordings_string)
+            for record in recordings
+                if record.id is id
+                    if recording?.type is "RAW"
+                        get_trace_data(id)
+                    else            
+                        get_route_data(id)
+                        get_trace_data(id)
+                    break
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
