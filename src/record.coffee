@@ -28,39 +28,39 @@ routeVisualizationColors = {
     cycling: [{
         lowerSpeedLimit: 0,
         higherSpeedLimit: 10,
-        color: '#f00' #red
+        color: '#d53e4f'
         },{
         lowerSpeedLimit: 10,
         higherSpeedLimit: 12,
-        color: '#ffa500' #orange
+        color: '#fdae61'
         },{
         lowerSpeedLimit: 12,
         higherSpeedLimit: 15,
-        color: '#ffff00' #yellow
+        color: '#fee08b'
         },{
         lowerSpeedLimit: 15,
         higherSpeedLimit: 20,
-        color: '#90ee90' #light green
+        color: '#ffffbf'
         },{
         lowerSpeedLimit: 20,
         higherSpeedLimit: 25,
-        color: '#0f0' #green
+        color: '#e6f598'
         },{
         lowerSpeedLimit: 25,
         higherSpeedLimit: 30,
-        color: '#40e0d0' #turquoise
+        color: '#abdda4'
         },{
         lowerSpeedLimit: 30,
         higherSpeedLimit: 35,
-        color: '#00f' #blue
+        color: '#66c2a5'
         },{
         lowerSpeedLimit: 35,
         higherSpeedLimit: 45,
-        color: '#ee82ee' #violet
+        color: '#3288bd'
         },{
         lowerSpeedLimit: 45,
         higherSpeedLimit: undefined,
-        color: '#800080' #purple
+        color: '#5e4fa2'
         }],
     walking: []
 }
