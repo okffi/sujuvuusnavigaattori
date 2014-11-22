@@ -11,6 +11,7 @@
     recorder_get_route_url
     recorder_get_fluency_url
     recorder_get_traces_url
+    recorder_get_route_fluency_url
 } = citynavi.config
 
 info = L.control()
@@ -244,15 +245,19 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
         window.speedLegend = undefined
 
 $(document).bind 'pagebeforechange', (e, data) ->
+    console.log "in visualization pagebeforechange"
     if typeof data.toPage != "string"
         return
+    console.log "still"
     console.log data
     u = $.mobile.path.parseUrl(data.toPage)
     console.log "url ", u
     vehicle_mode = $("input:checked[name=vehiclesettings]").val()
     if u.hash.indexOf("map-page") != -1 and vehicle_mode is "BICYCLE"
-        console.log "making fluency data request to " + recorder_get_fluency_url
-        $.getJSON recorder_get_fluency_url, (data) =>
+        console.log "making fluency data request to " + recorder_get_route_fluency_url
+        points = ([point[0]*1e-5, point[1]*1e-5] for point in citynavi.itinerary.legs[0].legGeometry.points)
+        console.log points.join()
+        $.getJSON recorder_get_route_fluency_url, { leg_geometry: points.join() }, (data) =>
             console.log data
             if data?
                 geoJsonFeatureGroup = L.featureGroup();
