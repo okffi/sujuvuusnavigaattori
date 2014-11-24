@@ -20,15 +20,15 @@ info.onAdd = (map) ->
     @._div
     
 info.update =  ->
-    html = '<div>Avg. speed</div>'
+    html = '<div style="padding: 3px 0">Speed</div>'
     console.log "creating color divs"
     routeVisualizationColors = window.routeVisualizationColors
     console.log routeVisualizationColors
     for color in routeVisualizationColors.cycling
         console.log "creating div"
-        html += '<div><span style="color:' + color.color + ';">&#9608; ' +
-            color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
-    html += '<div><span style="color:' + '#000' + ';">&#9608; GPS' 
+        html += '<div><span style="color:' + color.color + ';">&#9608;</span><span> ' +
+            color.lowerSpeedLimit + if color.higherSpeedLimit? then '-'+color.higherSpeedLimit else "+" + '</span></div>'
+    html += '<div><span style="color:' + '#99e' + ';">&#9608;</span> GPS' 
 
     console.log html
 
@@ -211,8 +211,9 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 for trace_line in data
                     geoJsonLayer = L.geoJson(trace_line,
                         style:
-                            "color": 'black',
-                            "opacity": 0.5
+                            "color": '#99e',
+                            "dashArray": '8,16',
+                            "opacity": 0.7
                         coordsToLatLng: cleanUpCoords
                     )
                     tracesJsonFeatureGroup.addLayer(geoJsonLayer)
@@ -225,7 +226,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 geoJsonFeatureGroup = L.featureGroup();
 
                 for route_vector in data
-                    color = 'black'
+                    color = 'gray'
                     routeVisualizationColors = window.routeVisualizationColors
                     for routeVisColor in routeVisualizationColors.cycling
                         if route_vector.speed >= routeVisColor.lowerSpeedLimit
@@ -236,7 +237,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
                             "color": color,
-                            "opacity": 0.8
+                            "opacity": 1
                     )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer)
                 geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()

@@ -86,6 +86,11 @@
     margin-right: 15px;
 }
 
+.leaflet-right .leaflet-control-speed {
+    font-size: 75%;
+    width: 40px;
+}
+
 .leaflet-top .leaflet-control {
     margin-top: 15px;
 }

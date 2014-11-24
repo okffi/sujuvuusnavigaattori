@@ -19,15 +19,13 @@
     $.mobile.defaultPageTransition = "slide";
     $.mobile.defaultHomeScroll = 0;
     window.citynavi.reach = typeof reach !== "undefined" && reach !== null ? reach.Api.init() : void 0;
-    return $.mobile.page.prototype.options.keepNative = "form input";
-  });
-
-  $(document).ajaxStart(function(e) {
-    return $.mobile.loading('show');
-  });
-
-  $(document).ajaxStop(function(e) {
-    return $.mobile.loading('hide');
+    $.mobile.page.prototype.options.keepNative = "form input";
+    $(document).ajaxStart(function(e) {
+      return $.mobile.loading('show');
+    });
+    return $(document).ajaxStop(function(e) {
+      return $.mobile.loading('hide');
+    });
   });
 
   CityNavigator = (function() {

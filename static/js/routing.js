@@ -863,7 +863,7 @@
 
   render_route_buttons = function($list, itinerary, route_layer, polylines, max_duration) {
     var $end, $full_trip, $start, index, leg, length, trip_duration, trip_start, _fn, _i, _len, _ref1;
-    trip_duration = itinerary.duration;
+    trip_duration = itinerary.duration * 1000;
     trip_start = itinerary.startTime;
     length = itinerary.legs.length + 1;
     $full_trip = $("<li class='leg'><div class='leg-bar' style='margin-right: 3px'><i style='font-weight: lighter'><img />Total</i><div class='leg-indicator'>" + (Math.ceil(trip_duration / 1000 / 60)) + "min</div></div></li>");
@@ -893,7 +893,7 @@
       }
       color = google_colors[(_ref3 = leg.routeType) != null ? _ref3 : leg.mode];
       leg_start = (leg.startTime - trip_start) / trip_duration;
-      leg_duration = leg.duration / trip_duration;
+      leg_duration = leg.duration * 1000 / trip_duration;
       leg_label = "<img src='static/images/" + icon_name + "' height='100%' />";
       if ((leg.routeType == null) && (leg.distance != null) && leg.duration / max_duration > 0.35) {
         leg_subscript = "<div class='leg-indicator' style='font-weight: normal'>" + (Math.ceil(leg.distance / 100) / 10) + "km</div>";
@@ -1037,6 +1037,19 @@
   });
 
   $(document).ready(function() {
+    var destination, index, lat, lng, parts, target;
+    if (location.search != null) {
+      if (index = location.search.indexOf("destination=") !== -1) {
+        destination = location.search.substring(index + 12, location.search.length);
+        if (destination.indexOf(',') !== -1) {
+          parts = destination.split(',');
+          lat = parts[0];
+          lng = parts[1];
+          target = new L.LatLng(parseFloat(lat), parseFloat(lng));
+          set_target_marker(target);
+        }
+      }
+    }
     resize_map();
     return map.invalidateSize();
   });
@@ -1110,6 +1123,7 @@
       $button = $("<a href='' data-role='button' data-rel='back' data-icon='arrow-l' data-mini='true'>Back</a>");
       $button.on('click', function(e) {
         e.preventDefault();
+        window.route_dbg = null;
         if (history.length < 2) {
           $.mobile.changePage("#front-page");
         } else {
@@ -1404,39 +1418,10 @@
     }
   });
 
-  $('#use-speech').change(function() {
-    var xhr;
-    if ($('#use-speech').attr('checked')) {
-      if (typeof meSpeak === "undefined" || meSpeak === null) {
-        xhr = $.ajax({
-          url: "mespeak/mespeak.js",
-          dataType: "script",
-          cache: true
-        });
-        xhr.done(function() {
-          if (typeof meSpeak !== "undefined" && meSpeak !== null) {
-            if (typeof meSpeak !== "undefined" && meSpeak !== null) {
-              meSpeak.loadConfig("mespeak/mespeak_config.json");
-            }
-            if (typeof meSpeak !== "undefined" && meSpeak !== null) {
-              meSpeak.loadVoice("mespeak/voices/fi.json");
-            }
-            return console.log("meSpeak loaded");
-          } else {
-            return console.log("meSpeak failed");
-          }
-        });
-        return xhr.fail(function(jqXHR, textStatus, errorThrown) {
-          return console.log("meSpeak failed to load: " + textStatus + " " + errorThrown);
-        });
-      }
-    }
-  });
-
   speak_real = function(text) {
-    if ((typeof meSpeak !== "undefined" && meSpeak !== null) && $('#use-speech').attr('checked')) {
+    if ((citynavi.config.meSpeak != null) && $('#use-speech').attr('checked')) {
       console.log("*** Speaking", text);
-      return meSpeak.speak(text, {}, speak_callback);
+      return citynavi.config.meSpeak.speak(text, {}, speak_callback);
     } else {
       console.log("*** Not speaking", text);
       return speak_callback();

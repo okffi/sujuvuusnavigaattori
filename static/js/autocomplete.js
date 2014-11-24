@@ -368,7 +368,7 @@
 
     GoogleLocation.prototype.fetch_details = function(callback, args) {
       var params, url;
-      url = google_url + "details/";
+      url = google_url + "geocode.json";
       params = {
         reference: this.info.reference
       };
@@ -398,7 +398,7 @@
 
     GoogleCompleter.prototype.fetch_results = function() {
       var area, data, location, radius, url;
-      url = google_url + "autocomplete/";
+      url = google_url + "autocomplete.json";
       area = citynavi.config;
       location = citynavi.get_source_location_or_area_center();
       radius = 12000;
@@ -431,6 +431,7 @@
             if (area.google_suffix && pred.description.lastIndexOf(area.google_suffix) === pred.description.length - area.google_suffix.length) {
               pred.description = pred.description.substring(0, pred.description.length - area.google_suffix.length);
             }
+            pred.description = pred.description.replace(/( [^,]+),\1/g, "$1");
             loc = new GoogleLocation(pred);
             loc_list.push(loc);
           }
