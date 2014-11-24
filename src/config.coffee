@@ -76,6 +76,8 @@ defaults =
     recorder_login_url: recorder_base_url + "auth/login"
     recorder_get_trace_url: recorder_base_url + "get_trace"
     recorder_get_route_url: recorder_base_url + "get_route"
+#    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency?bounds=24.836483001708984,60.184550027412534,24.960079193115234,60.20502797433089"
+#    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency"
     recorder_get_fluency_url: recorder_base_url + "get_fluency"
     recorder_get_traces_url: recorder_base_url + "get_traces"
     recorder_post_route_url: recorder_base_url + "store_data"
@@ -118,7 +120,7 @@ defaults =
     maps:
         osm:
             name: "OpenStreetMap"
-            url_template: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            url_template: 'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png'
             opts:
                 maxZoom: 19
                 attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
