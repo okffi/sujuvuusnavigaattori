@@ -28,7 +28,6 @@ info.update =  ->
         console.log "creating div"
         html += '<div><span style="color:' + color.color + ';">&#9608;</span><span> ' +
             color.lowerSpeedLimit + if color.higherSpeedLimit? then '-'+color.higherSpeedLimit else "+" + '</span></div>'
-    html += '<div><span style="color:' + '#99e' + ';">&#9608;</span> GPS' 
 
     console.log html
 
@@ -206,15 +205,24 @@ $(document).bind 'pagebeforechange', (e, data) ->
         $.getJSON recorder_get_traces_url, (data) =>
             console.log "traces", data
             if data?
-                data = cleanUpTraces(data)
+                # data = cleanUpTraces(data)
                 tracesJsonFeatureGroup = L.featureGroup();
-                for trace_line in data
-                    geoJsonLayer = L.geoJson(trace_line,
+                for trace_vector in data
+                    routeVisualizationColors = window.routeVisualizationColors
+                    if trace_vector.speed == 0
+                        color='#777'
+                    else
+                        for routeVisColor in routeVisualizationColors.cycling
+                            if trace_vector.speed >= routeVisColor.lowerSpeedLimit
+                                if !routeVisColor.higherSpeedLimit? or trace_vector.speed < routeVisColor.higherSpeedLimit
+                                    color = routeVisColor.color
+                                    break
+    
+                    geoJsonLayer = L.geoJson(trace_vector.geom,
                         style:
-                            "color": '#99e',
-                            "dashArray": '8,16',
-                            "opacity": 0.7
-                        coordsToLatLng: cleanUpCoords
+                            "color": color,
+                            "dasharray": "8.16",
+                            "opacity": 0.5
                     )
                     tracesJsonFeatureGroup.addLayer(geoJsonLayer)
                 tracesJsonFeatureGroup.addTo(window.map_dbg).bringToBack()
@@ -228,16 +236,19 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 for route_vector in data
                     color = 'gray'
                     routeVisualizationColors = window.routeVisualizationColors
-                    for routeVisColor in routeVisualizationColors.cycling
-                        if route_vector.speed >= routeVisColor.lowerSpeedLimit
-                            if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
-                                color = routeVisColor.color
-                                break
+                    if route_vector.speed == 0
+                        color='#777'
+                    else
+                        for routeVisColor in routeVisualizationColors.cycling
+                            if route_vector.speed >= routeVisColor.lowerSpeedLimit
+                                if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
+                                    color = routeVisColor.color
+                                    break
     
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
                             "color": color,
-                            "opacity": 1
+                            "opacity": 0.9
                     )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer)
                 geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
