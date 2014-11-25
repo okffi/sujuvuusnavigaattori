@@ -76,6 +76,7 @@ defaults =
     recorder_login_url: recorder_base_url + "auth/login"
     recorder_get_trace_url: recorder_base_url + "get_trace"
     recorder_get_route_url: recorder_base_url + "get_route"
+    recorder_get_plan_url: recorder_base_url + "get_plan"
 #    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency?bounds=24.836483001708984,60.184550027412534,24.960079193115234,60.20502797433089"
 #    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency"
     recorder_get_fluency_url: recorder_base_url + "get_fluency"

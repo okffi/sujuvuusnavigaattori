@@ -9,10 +9,18 @@
 {
     recorder_get_trace_url
     recorder_get_route_url
+    recorder_get_plan_url
     recorder_get_fluency_url
     recorder_get_traces_url
     recorder_get_route_fluency_url
 } = citynavi.config
+
+geoJsonFeatureGroup = null
+tracesJsonFeatureGroup = null
+traceLine = null
+planLine = null
+
+BAD_NAMES = [ "", " " ]
 
 info = L.control()
 info.onAdd = (map) ->
@@ -34,12 +42,6 @@ info.update =  ->
 
     @._div.innerHTML = html
                                     
-
-geoJsonFeatureGroup = null
-tracesJsonFeatureGroup = null
-traceLine = null
-
-BAD_NAMES = [ "", " " ]
 
 get_good_name = (okf_name, otp_name, lat, lng) ->
     name = if okf_name? then okf_name.split(',')[0] else ""
@@ -130,7 +132,8 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 if record.id is id
                     if recording?.type is "RAW"
                         get_trace_data(id)
-                    else            
+                    else
+                        get_plan_data(id)
                         get_route_data(id)
                         get_trace_data(id)
                     break
@@ -143,24 +146,54 @@ $(document).bind 'pagebeforechange', (e, data) ->
             console.log "removing geoJsonLayers"
             if geoJsonFeatureGroup?
                 window.map_dbg.removeLayer geoJsonFeatureGroup
+                window.layers_control.removeLayer(geoJsonFeatureGroup)
                 geoJsonFeatureGroup = null
             if traceLine?
                 window.map_dbg.removeLayer traceLine
+                window.layers_control.removeLayer(traceLine)
                 traceLine = null
             if window.speedLegend?
                 window.map_dbg.removeControl window.speedLegend
                 window.speedLegend = undefined
+            if planLine?
+                window.map_dbg.removeLayer planLine
+                window.layers_control.removeLayer(planLine)
+                planLine = null
+                                                
 
+get_plan_data = (id) ->
+    $.getJSON recorder_get_plan_url, { id: id }, (plan_data) ->
+        if plan_data?
+            console.log plan_data
+            params =
+                toPlace: "#{plan_data.to_place.coordinates[1]},#{plan_data.to_place.coordinates[0]}"
+                fromPlace: "#{plan_data.from_place.coordinates[1]},#{plan_data.from_place.coordinates[0]}"
+                minTransferTime: plan_data.min_transfer_time
+                walkSpeed: plan_data.walk_speed
+                maxWalkDistance: plan_data.max_walk_distance
+                numItineraries: 3
+                mode: plan_data.mode
+            #TODO add time
+            $.getJSON citynavi.config.otp_base_url + "plan", params, (data) ->
+                console.log "opentripplanner callback got data"
+                console.log data
+                decoded_points = window.decode_otp_polyline(data.plan.itineraries[0].legs[0].legGeometry.points, 2)
+                points = (new L.LatLng(point[0]*1e-5, point[1]*1e-5) for point in decoded_points)
+                console.log points
+                planLine = L.polyline(points, { color: "blue", opacity: 0.8, dashArray: "5, 10" })
+                planLine.addTo(window.map_dbg).bringToBack()
+                window.layers_control.addOverlay(planLine, "Show route plan")
 
 get_trace_data = (id) ->
     $.getJSON recorder_get_trace_url, { id: id }, (data) ->
         if data?
             console.log data
-            #TODO draw trace
+            # draw trace
             traceLine = L.polyline([], { color: 'black', transparency: 0.5 })
             for trace in data
                 traceLine.addLatLng([trace.geom.coordinates[1], trace.geom.coordinates[0]])
             traceLine.addTo(window.map_dbg).bringToBack()
+            window.layers_control.addOverlay(traceLine, "Show GPS track")
 
             $('#my-route').bind 'pagebeforehide', (e, o) ->
         else console.log "no trace data"
@@ -188,6 +221,8 @@ get_route_data = (id) ->
                 geoJsonFeatureGroup.addLayer(geoJsonLayer);
 
             geoJsonFeatureGroup.addTo(window.map_dbg)
+            window.layers_control.addOverlay(geoJsonFeatureGroup, "Show fluency")
+
 
 $('#my-route').bind 'pageshow', (e, data) ->
     console.log "my-route pageshow"
@@ -227,6 +262,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
                     )
                     tracesJsonFeatureGroup.addLayer(geoJsonLayer)
                 tracesJsonFeatureGroup.addTo(window.map_dbg).bringToBack()
+                window.layers_control.addOverlay(tracesJsonFeatureGroup, "Show GPS tracks")
                                                                                                 
         console.log "making fluency data request to " + recorder_get_fluency_url
         $.getJSON recorder_get_fluency_url, (data) =>
@@ -253,6 +289,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
                     )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer)
                 geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
+                window.layers_control.addOverlay(geoJsonFeatureGroup, "Show fluency")
 
 $('#fluency-page').bind 'pageshow', (e, data) ->
     console.log "fluency-page pageshow"
@@ -271,11 +308,12 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     console.log "removing geoJsonLayers"
     if tracesJsonFeatureGroup?
         window.map_dbg.removeLayer tracesJsonFeatureGroup
+        window.layers_control.removeLayer(tracesJsonFeatureGroup)
         tracesJsonFeatureGroup = null
     if geoJsonFeatureGroup?
         window.map_dbg.removeLayer geoJsonFeatureGroup
+        window.layers_control.removeLayer(geoJsonFeatureGroup)
         geoJsonFeatureGroup = null
-
     if window.speedLegend?
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
@@ -363,3 +401,9 @@ cleanUpTraces = (data) ->
 
 swapCoordinate = (coordinate) ->
     [coordinate[1], coordinate[0]]
+
+# plan.date is http://www.tutorialspoint.com/java/util/calendar_gettimeinmillis.htm but in seconds
+# plan date and time are formed via Date dateObject = DateUtils.toDate(date, time, tz);
+# DateUtils is in org.opentripplanner.util
+# tz is:
+# otpServer.graphService.getGraph(request.routerId).getTimeZone();

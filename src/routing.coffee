@@ -214,7 +214,7 @@ format_time = (time) ->
 
 # Route received from OTP is encoded so it needs to be decoded.
 # translated from https://github.com/ahocevar/openlayers/blob/master/lib/OpenLayers/Format/EncodedPolyline.js
-decode_polyline = (encoded, dims) ->
+window.decode_otp_polyline = decode_polyline = (encoded, dims) ->
     # Start from origo
     point = (0 for i in [0...dims])
 
@@ -959,7 +959,7 @@ control_layers = {}
 for key, value of citynavi.config.maps
     control_layers[value.name] = layers[key]
 
-L.control.layers(control_layers,
+window.layers_control = L.control.layers(control_layers,
     "View map errors": osmnotes
 ).addTo(map)
 
