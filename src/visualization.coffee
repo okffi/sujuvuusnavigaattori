@@ -12,6 +12,7 @@
     recorder_get_plan_url
     recorder_get_fluency_url
     recorder_get_traces_url
+    recorder_get_route_fluency_url
 } = citynavi.config
 
 geoJsonFeatureGroup = null
@@ -28,15 +29,14 @@ info.onAdd = (map) ->
     @._div
     
 info.update =  ->
-    html = '<div>Avg. speed</div>'
+    html = '<div style="padding: 3px 0">Speed</div>'
     console.log "creating color divs"
     routeVisualizationColors = window.routeVisualizationColors
     console.log routeVisualizationColors
     for color in routeVisualizationColors.cycling
         console.log "creating div"
-        html += '<div><span style="color:' + color.color + ';">&#9608; ' +
-            color.lowerSpeedLimit + '-' + if color.higherSpeedLimit? then color.higherSpeedLimit else "" + '</span></div>'
-    html += '<div><span style="color:' + '#000' + ';">&#9608; GPS' 
+        html += '<div><span style="color:' + color.color + ';">&#9608;</span><span> ' +
+            color.lowerSpeedLimit + if color.higherSpeedLimit? then '-'+color.higherSpeedLimit else "+" + '</span></div>'
 
     console.log html
 
@@ -63,8 +63,9 @@ $('#my-routes').bind 'pageshow', (e, data) ->
     recordings_string = localStorage['recordings']
     if recordings_string?
         recordings = JSON.parse(recordings_string)
+        
         for record in recordings by -1 # list the latest recording first
-            # show start and finish address via okf.fi if avail otherwise fall back to otp
+            # show start and finish address via okf.fi if avail otherwise fall back to otp if avail            
             name_from = get_good_name record.from.name.okf, record.from.name.otp, record.from.location.lat, record.from.location.lng
             name_to = get_good_name record.to.name.okf, record.to.name.otp, record.to.location.lat, record.to.location.lng
             durationText = ""
@@ -77,22 +78,36 @@ $('#my-routes').bind 'pageshow', (e, data) ->
                 if duration.minute() > 0
                     format += "m [min] "
                 durationText = duration.format(format)
-            
-            li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
-                "<p><b>" + name_from + " &#8594; " + name_to +
-                ", Duration: " + durationText +
-                "</b></p>" +
-                "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
-                "<p>" + 
-                "Avg. speed: " + record.avgSpeed.toFixed(1) + "km/h" +
-                ", on route / GPS distance: " +
-                (record.recordedRouteDistance / 1000).toFixed(1) +
-                " / " + (record.rawDistance / 1000).toFixed(1) +
-                " km" +
-                "</p></a></li>"
+            li_content = null
+            if record.type? and record.type is "RAW" # recording without navigation route
+                #console.log record
+                li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
+                    "<p><b>" + name_from + " &#8594; " + name_to +
+                    ", Duration: " + durationText +
+                    "</b></p>" +
+                    "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
+                    "<p>" + 
+                    "Avg. speed: " + record.avgGPSSpeed.toFixed(1) + "km/h" +
+                    ", GPS distance: " +
+                    (record.rawDistance / 1000).toFixed(1) +
+                    " km" +
+                    "</p></a></li>"                    
+            else            
+                li_content = "<li><a data-rel='close' href='#my-route?id=" + record.id + "'>" +
+                    "<p><b>" + name_from + " &#8594; " + name_to +
+                    ", Duration: " + durationText +
+                    "</b></p>" +
+                    "<p>" + moment(record.date).format("MMM D, YYYY ddd h:mm A") + "</p>" +
+                    "<p>" + 
+                    "Avg. speed: " + record.avgSpeed.toFixed(1) + "km/h" +
+                    ", on route / GPS distance: " +
+                    (record.recordedRouteDistance / 1000).toFixed(1) +
+                    " / " + (record.rawDistance / 1000).toFixed(1) +
+                    " km" +
+                    "</p></a></li>"
             console.log li_content
             $list.append(li_content)
-            # TODO show also length, duration, avg.speed, name given by user if any
+            # TODO show also name given by user if any
     else
         $list.append("<li>No recorded routes yet</li>")
 
@@ -109,10 +124,19 @@ $(document).bind 'pagebeforechange', (e, data) ->
     if u.hash.indexOf("my-route?id=") != -1
         id = u.hash.split('?')[1].split('=')[1]
         console.log id
-        
-        get_route_data(id)
-        get_trace_data(id)
-        get_plan_data(id)
+
+        recordings_string = localStorage['recordings']
+        if recordings_string?
+            recordings = JSON.parse(recordings_string)
+            for record in recordings
+                if record.id is id
+                    if recording?.type is "RAW"
+                        get_trace_data(id)
+                    else
+                        get_plan_data(id)
+                        get_route_data(id)
+                        get_trace_data(id)
+                    break
 
         if not window.speedLegend?
             info.addTo(window.map_dbg)
@@ -217,14 +241,24 @@ $(document).bind 'pagebeforechange', (e, data) ->
         $.getJSON recorder_get_traces_url, (data) =>
             console.log "traces", data
             if data?
-                data = cleanUpTraces(data)
+                # data = cleanUpTraces(data)
                 tracesJsonFeatureGroup = L.featureGroup();
-                for trace_line in data
-                    geoJsonLayer = L.geoJson(trace_line,
+                for trace_vector in data
+                    routeVisualizationColors = window.routeVisualizationColors
+                    if trace_vector.speed == 0
+                        color='#777'
+                    else
+                        for routeVisColor in routeVisualizationColors.cycling
+                            if trace_vector.speed >= routeVisColor.lowerSpeedLimit
+                                if !routeVisColor.higherSpeedLimit? or trace_vector.speed < routeVisColor.higherSpeedLimit
+                                    color = routeVisColor.color
+                                    break
+    
+                    geoJsonLayer = L.geoJson(trace_vector.geom,
                         style:
-                            "color": 'black',
+                            "color": color,
+                            "dasharray": "8.16",
                             "opacity": 0.5
-                        coordsToLatLng: cleanUpCoords
                     )
                     tracesJsonFeatureGroup.addLayer(geoJsonLayer)
                 tracesJsonFeatureGroup.addTo(window.map_dbg).bringToBack()
@@ -237,18 +271,21 @@ $(document).bind 'pagebeforechange', (e, data) ->
                 geoJsonFeatureGroup = L.featureGroup();
 
                 for route_vector in data
-                    color = 'black'
+                    color = 'gray'
                     routeVisualizationColors = window.routeVisualizationColors
-                    for routeVisColor in routeVisualizationColors.cycling
-                        if route_vector.speed >= routeVisColor.lowerSpeedLimit
-                            if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
-                                color = routeVisColor.color
-                                break
+                    if route_vector.speed == 0
+                        color='#777'
+                    else
+                        for routeVisColor in routeVisualizationColors.cycling
+                            if route_vector.speed >= routeVisColor.lowerSpeedLimit
+                                if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
+                                    color = routeVisColor.color
+                                    break
     
                     geoJsonLayer = L.geoJson(route_vector.geom,
                         style:
                             "color": color,
-                            "opacity": 0.8
+                            "opacity": 0.9
                     )
                     geoJsonFeatureGroup.addLayer(geoJsonLayer)
                 geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
@@ -280,6 +317,52 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     if window.speedLegend?
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
+
+$(document).bind 'pagebeforechange', (e, data) ->
+    console.log "in visualization pagebeforechange"
+    if typeof data.toPage != "string"
+        return
+    console.log "still"
+    console.log data
+    u = $.mobile.path.parseUrl(data.toPage)
+    console.log "url ", u
+    vehicle_mode = $("input:checked[name=vehiclesettings]").val()
+    if u.hash.indexOf("map-page") != -1 and vehicle_mode is "BICYCLE"
+        console.log "making fluency data request to " + recorder_get_route_fluency_url
+        points = ([point[0]*1e-5, point[1]*1e-5] for point in citynavi.itinerary.legs[0].legGeometry.points)
+        console.log points.join()
+        $.getJSON recorder_get_route_fluency_url, { leg_geometry: points.join() }, (data) =>
+            console.log data
+            if data?
+                geoJsonFeatureGroup = L.featureGroup();
+
+                for route_vector in data
+                    color = 'black'
+                    routeVisualizationColors = window.routeVisualizationColors
+                    for routeVisColor in routeVisualizationColors.cycling
+                        if route_vector.speed >= routeVisColor.lowerSpeedLimit
+                            if !routeVisColor.higherSpeedLimit? or route_vector.speed < routeVisColor.higherSpeedLimit
+                                color = routeVisColor.color
+                                break
+    
+                    geoJsonLayer = L.geoJson(route_vector.geom,
+                        style:
+                            "color": color,
+                            "opacity": 0.8
+                    )
+                    geoJsonFeatureGroup.addLayer(geoJsonLayer)
+                geoJsonFeatureGroup.addTo(window.map_dbg).bringToFront()
+
+$('#map-page').bind 'pagebeforehide', (e, o) ->
+    if geoJsonFeatureGroup?
+        window.map_dbg.removeLayer geoJsonFeatureGroup
+        geoJsonFeatureGroup = null
+
+    if window.speedLegend?
+        window.map_dbg.removeControl window.speedLegend
+        window.speedLegend = undefined
+
+
 
 cleanUpCoords = (coords) ->
     

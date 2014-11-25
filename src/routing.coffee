@@ -978,6 +978,7 @@ BackControl = L.Control.extend
         $button = $("<a href='' data-role='button' data-rel='back' data-icon='arrow-l' data-mini='true'>Back</a>")
         $button.on 'click', (e) ->
             e.preventDefault()
+            window.route_dbg = null
             if history.length < 2
                 $.mobile.changePage("#front-page")
             else

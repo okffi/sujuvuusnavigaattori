@@ -45,13 +45,13 @@
 
   hel_servicemap_base_url = "http://www.hel.fi/palvelukarttaws/rest/v2/";
 
-  recorder_base_url = "http://nano.hannes.dy.fi/recorder-server/";
+  recorder_base_url = "http://maas.okf.fi/";
 
   defaults = {
     hel_geocoder_address_url: hel_geocoder_base_url + "address/",
     hel_geocoder_poi_url: hel_geocoder_base_url + "poi/",
     waag_url: "http://api.citysdk.waag.org/",
-    google_url: "http://dev.hel.fi/geocoder/google/",
+    google_url: "http://data.okf.fi/gis/1/",
     nominatim_url: "http://open.mapquestapi.com/nominatim/v1/search.php",
     bag42_url: "http://bag42.nl/api/v0/geocode/json",
     hel_servicemap_service_url: hel_servicemap_base_url + "service/",
@@ -60,7 +60,13 @@
     osm_notes_url: "http://api.openstreetmap.org/api/0.6/notes.json",
     faye_url: "http://dev.hsl.fi:9002/faye",
     recorder_login_url: recorder_base_url + "auth/login",
-    recorder_trace_seq_url: recorder_base_url + "trace_seqs",
+    recorder_get_trace_url: recorder_base_url + "get_trace",
+    recorder_get_route_url: recorder_base_url + "get_route",
+    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency",
+    recorder_get_traces_url: recorder_base_url + "get_traces",
+    recorder_post_route_url: recorder_base_url + "store_data",
+    recorder_post_plan_url: recorder_base_url + "store_plan",
+    recorder_post_trace_seq_url: recorder_base_url + "trace_seqs",
     icon_base_path: "static/images/",
     min_zoom: 5,
     colors: {
@@ -96,7 +102,7 @@
     maps: {
       osm: {
         name: "OpenStreetMap",
-        url_template: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        url_template: 'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png',
         opts: {
           maxZoom: 19,
           attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
@@ -131,14 +137,14 @@
   helsinki = {
     name: "Helsinki Region",
     country: "fi",
-    cities: ["Helsinki", "Vantaa", "Espoo", "Kauniainen", "Kerava", "Sipoo", "Kirkkonummi", "Helsingfors", "Vanda", "Esbo", "Grankulla", "Kervo", "Sibbo", "Kyrkslätt"],
+    cities: null,
     bbox_ne: [70.09, 31.58],
     bbox_sw: [59.50, 19.11],
     center: [64.795, 25.345],
-    otp_base_url: "http://144.76.78.72/otp/routers/default/",
+    otp_base_url: "http://otp.okf.fi/otp/routers/default/",
     siri_url: "http://dev.hsl.fi/siriaccess/vm/json?operatorRef=HSL",
     poi_muni_id: null,
-    waag_id: "admr.fi.uusimaa",
+    waag_id: "",
     poi_providers: {
       "waag": [
         {
@@ -153,10 +159,7 @@
           type: "supermarket"
         }, {
           type: "pharmacy"
-        }
-      ],
-      "geocoder": [
-        {
+        }, {
           type: "park"
         }, {
           type: "library"
@@ -169,7 +172,8 @@
         }
       ]
     },
-    autocompletion_providers: ["poi_categories", "history", "geocoder", "osm"]
+    autocompletion_providers: ["poi_categories", "history", "google", "osm"],
+    google_suffix: ", Finland"
   };
 
   citynavi.update_configs({

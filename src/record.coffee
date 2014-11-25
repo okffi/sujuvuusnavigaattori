@@ -2,6 +2,7 @@
     recorder_login_url
     recorder_post_route_url
     recorder_post_plan_url
+    recorder_post_trace_seq_url
     google_url
 } = citynavi.config
 
@@ -27,39 +28,39 @@ routeVisualizationColors = {
     cycling: [{
         lowerSpeedLimit: 0,
         higherSpeedLimit: 10,
-        color: '#f00' #red
+        color: '#d53e4f' #red
         },{
         lowerSpeedLimit: 10,
         higherSpeedLimit: 12,
-        color: '#ffa500' #orange
+        color: '#fdae61' #orange
         },{
         lowerSpeedLimit: 12,
         higherSpeedLimit: 15,
-        color: '#ffff00' #yellow
+        color: '#fee08b' #yellow
         },{
         lowerSpeedLimit: 15,
         higherSpeedLimit: 20,
-        color: '#90ee90' #light green
+        color: '#ffffbf' #light green
         },{
         lowerSpeedLimit: 20,
         higherSpeedLimit: 25,
-        color: '#0f0' #green
+        color: '#e6f598' #green
         },{
         lowerSpeedLimit: 25,
         higherSpeedLimit: 30,
-        color: '#40e0d0' #turquoise
+        color: '#abdda4' #turquoise
         },{
         lowerSpeedLimit: 30,
         higherSpeedLimit: 35,
-        color: '#00f' #blue
+        color: '#66c2a5' #blue
         },{
         lowerSpeedLimit: 35,
         higherSpeedLimit: 45,
-        color: '#ee82ee' #violet
+        color: '#3288bd' #violet
         },{
         lowerSpeedLimit: 45,
         higherSpeedLimit: undefined,
-        color: '#800080' #purple
+        color: '#5e4fa2' #purple
         }],
     walking: []
 }
@@ -70,8 +71,12 @@ document.addEventListener("deviceready", () ->
     ,false)
 
 stop_recording = ->
-    window.map_dbg.removeControl info
+    if window.speedLegend?
+        window.map_dbg.removeControl info
     window.speedLegend = undefined
+    send_trace_seq_to_server()
+    if not window.route_dbg?
+        finish_trace_recording()
     delete_recording_id()
     reset_routing_data()
     delete_trace_seq()
@@ -83,21 +88,66 @@ stop_recording = ->
         wakelocked = false
 
 start_recording = ->
-    info.addTo(window.map_dbg)
-    window.speedLegend = info
     reset_routing_data()
     delete_trace_seq()
     store_recording_id(uniqueId(36))
-    send_plan_to_server()
+    if window.route_dbg?
+        info.addTo(window.map_dbg)
+        window.speedLegend = info
+        send_plan_to_server()
     window.rawline = new L.Polyline([], { color: 'black', opacity: 0.4 }).addTo(window.map_dbg)
     window.routelines = []
 
     window.powerManagement.acquireWakeLock () -> 
         wakelocked = true
 
-send_plan_to_server = ->
-    window.route_dbg
+finish_trace_recording = ->
+    update_current_recording_endTime(get_timestamp())
+    # store and geolocate end place now
+    trace_seq = get_trace_seq()
+    if trace_seq?
+        trace = trace_seq[trace_seq.length - 1]
+        if trace?
+            update_current_recording_to_place(trace.location.latlng.lat, trace.location.latlng.lng)
 
+        # store avg GPS speed for the recording
+        speedSum = 0
+        speedCount = 0
+        for trace in trace_seq
+            if trace?.speed?
+                speedSum += trace.speed
+                speedCount++
+        if speedCount > 0
+            avgGPSSpeed = speedSum / speedCount * 3.6
+            update_current_recording_gps_speed(avgGPSSpeed)
+            
+    # TODO    
+    # - show speed data as coloring for the raw trace
+    # - test
+
+send_trace_seq_to_server = ->
+    payload =
+        session_id: get_recording_id()
+        trace_seq: get_trace_seq()
+
+    jqxhr = $.ajax({
+        url: recorder_post_trace_seq_url
+        data: JSON.stringify(payload)
+        contentType: 'application/json'
+        type: 'POST'
+    }).done((d) ->
+        console.log('trace response:')
+        console.log(d)
+        resend_failed_data_if_any()
+    ).fail((jqXHR, textStatus, errorThrown) ->
+        console.log(jqXHR)
+        console.log(textStatus)
+        console.log(errorThrown)
+        save_failed_send(recorder_post_trace_seq_url, payload)
+    )
+    
+
+send_plan_to_server = ->
     from_latlng = window.route_dbg.requestParameters.fromPlace.split(',')
     to_latlng = window.route_dbg.requestParameters.toPlace.split(',')
     payload =
@@ -192,6 +242,19 @@ $('#flip-record2').on 'change', () ->
         console.log('recording switched to off')
         stop_recording()
 
+# Front page switch
+$('#flip-record3').on 'change', () ->
+    flip_switch = $(@)
+    record_on = flip_switch.val() == 'on'
+    $('#flip-record3').val(flip_switch.val()).slider('refresh')
+    if record_on
+        console.log('recording switched to on')
+        start_recording()
+    else
+        console.log('recording switched to off')
+        stop_recording()
+
+
 # Update UI to match the state of localStorage.
 $(document).on 'pagecreate', '#map-page', () ->
     $('#flip-record').on 'slidecreate', () ->
@@ -228,33 +291,63 @@ store_recording_id = (id) ->
                 break
 
     if not found
-        recordings.push({
-            id: id
-            date: get_timestamp()
-            endTime: null
-            avgSpeed: 0
-            recordedRouteDistance: 0
-            rawDistance: 0
-            from:
-                name:
-                    otp: window.route_dbg.plan.from.name
-                    okf: null
-                location:
-                    lat: window.route_dbg.plan.from.lat
-                    lng: window.route_dbg.plan.from.lon
-            to:
-                name:
-                    otp: window.route_dbg.plan.to.name
-                    okf: null
-                location:
-                    lat: window.route_dbg.plan.to.lat
-                    lng: window.route_dbg.plan.to.lon
-            mode: window.route_dbg.requestParameters.mode                
-        })
+        if window.route_dbg?
+            recordings.push({
+                id: id
+                type: "NAVI"
+                date: get_timestamp()
+                endTime: null
+                avgSpeed: 0
+                recordedRouteDistance: 0
+                rawDistance: 0
+                from:
+                    name:
+                        otp: window.route_dbg.plan.from.name
+                        okf: null
+                    location:
+                        lat: window.route_dbg.plan.from.lat
+                        lng: window.route_dbg.plan.from.lon
+                to:
+                    name:
+                        otp: window.route_dbg.plan.to.name
+                        okf: null
+                    location:
+                        lat: window.route_dbg.plan.to.lat
+                        lng: window.route_dbg.plan.to.lon
+                mode: window.route_dbg.requestParameters.mode                
+            })
+            reverse_geocode(window.route_dbg.plan.from.lat, window.route_dbg.plan.from.lon, handle_geo_result, [id, 'from'])
+            reverse_geocode(window.route_dbg.plan.to.lat, window.route_dbg.plan.to.lon, handle_geo_result, [id, 'to'])
+        else
+            location = citynavi.get_source_location()
+            recordings.push({
+                id: id
+                type: "RAW"
+                date: get_timestamp()
+                endTime: null
+                avgSpeed: -1
+                avgGPSSpeed: 0
+                recordedRouteDistance: -1
+                rawDistance: 0
+                from:
+                    name:
+                        otp: undefined
+                        okf: null
+                    location:
+                        lat: if location? then location[0] else null
+                        lng: if location? then location[1] else null
+                to:
+                    name:
+                        otp: undefined
+                        okf: null
+                    location:
+                        lat: null
+                        lng: null
+                
+            })
+            if location?
+                reverse_geocode(location[0], location[1], handle_geo_result, [id, 'from'])
         localStorage['recordings'] = JSON.stringify(recordings)
-
-        reverse_geocode(window.route_dbg.plan.from.lat, window.route_dbg.plan.from.lon, handle_geo_result, [id, 'from'])
-        reverse_geocode(window.route_dbg.plan.to.lat, window.route_dbg.plan.to.lon, handle_geo_result, [id, 'to'])
 
 reverse_geocode = (lat, lng, callback, callback_params) ->
     $.getJSON google_url + "geocode.json", { lat: lat, lng: lng, language: "fin" }, (data) =>
@@ -281,6 +374,14 @@ handle_geo_result = (result, params) ->
 get_recording_id = -> recording_id
 delete_recording_id = -> recording_id = null
 is_recording = -> get_recording_id()?
+get_recording = (id) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is id
+                return record
+    return null
 
 update_current_recording_endTime = (value) ->
     recordings_string = localStorage['recordings']
@@ -321,6 +422,29 @@ update_current_recording_raw_dist = (value) ->
                 record.rawDistance = value
                 localStorage['recordings'] = JSON.stringify(recordings)
                 break
+
+update_current_recording_to_place = (lat, lng) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()
+                record.to.location.lat = lat
+                record.to.location.lng = lng
+                localStorage['recordings'] = JSON.stringify(recordings)
+                reverse_geocode(lat, lng, handle_geo_result, [record.id, 'to'])
+                break
+
+update_current_recording_gps_speed = (value) ->
+    recordings_string = localStorage['recordings']
+    if recordings_string?
+        recordings = JSON.parse(recordings_string)
+        for record in recordings
+            if record.id is get_recording_id()
+                record.avgGPSSpeed = value
+                localStorage['recordings'] = JSON.stringify(recordings)
+                break
+    
 
 store_trace = (trace) ->
     if trace?
@@ -381,7 +505,8 @@ window.map_dbg.on 'locationfound', (e) ->
         update_raw_distance(e.latlng)
         trace = form_raw_trace(e)
         store_trace trace
-        form_route_trace(e)
+        if window.route_dbg?
+            form_route_trace(e)
         window.rawline.addLatLng([trace.location.latlng.lat, trace.location.latlng.lng])
         window.rawline.redraw()
 
@@ -517,14 +642,12 @@ deg2rad = (deg) ->
     deg * (Math.PI / 180)
                                                             
 send_data_to_server = (speed, points, was_on_route) ->
-
     payload =
         session_id: get_recording_id()
         timestamp: get_timestamp()
         speed: speed
         mode: window.route_dbg.requestParameters.mode
         points: points
-        trace_seq: get_trace_seq()
         was_on_route: was_on_route
     
     console.log('going to POST data to server')
@@ -544,7 +667,7 @@ send_data_to_server = (speed, points, was_on_route) ->
             console.log(errorThrown)
             save_failed_send(recorder_post_route_url, payload)
         )
- 
+    send_trace_seq_to_server()
     
 get_route_points = (latlng_start, latlng_end) ->
     route_points = []
