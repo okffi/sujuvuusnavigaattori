@@ -80,6 +80,7 @@ defaults =
 #    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency"
     recorder_get_fluency_url: recorder_base_url + "get_fluency"
     recorder_get_traces_url: recorder_base_url + "get_traces"
+    recorder_get_route_fluency_url: recorder_base_url + "route_fluency"
     recorder_post_route_url: recorder_base_url + "store_data"
     recorder_post_plan_url: recorder_base_url + "store_plan"
     recorder_post_trace_seq_url: recorder_base_url + "trace_seqs"
