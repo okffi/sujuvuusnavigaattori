@@ -904,15 +904,34 @@ map.on 'zoomend', (e) ->
     $('#map').attr('class', "leaflet-container leaflet-fade-anim "+minzooms)
 
 $(document).ready () ->
-    if location.search?
-        if index = location.search.indexOf("destination=") != -1
-            destination = location.search.substring(index + 12, location.search.length)
-            if destination.indexOf(',') != -1
-                parts = destination.split(',')
-                lat = parts[0]
-                lng = parts[1]
-                target = new L.LatLng(parseFloat(lat), parseFloat(lng))
-                set_target_marker(target)
+    if location.search? and location.search.length > 0
+        console.log "location.search", location.search
+        searchString = location.search.substring(1, location.search.length)
+        searchParams = searchString.split("&")
+        target = undefined
+        mode = undefined
+        usetransit = false
+        for param in searchParams
+            if index = param.indexOf("usetransit=yes") != -1
+                usetransit = true
+            if index = param.indexOf("mode=") != -1
+                mode = param.substring(index + 4, param.length)
+                $('input[name=vehiclesettings][value=' + mode + ']').prop('checked', true)
+            if index = param.indexOf("destination=") != -1
+                destination = param.substring(index + 11, param.length)
+                #console.log destination
+                if destination.indexOf(',') != -1
+                    parts = destination.split(',')
+                    lat = parts[0]
+                    lng = parts[1]
+                    target = new L.LatLng(parseFloat(lat), parseFloat(lng))
+        if mode? and mode is "WALK" and usetransit is true
+            $('input[name=usetransit]').prop('checked', true)
+        else
+            $('input[name=usetransit]').prop('checked', false)
+        if target?
+            set_target_marker(target)
+            
     resize_map()
     map.invalidateSize()
 
