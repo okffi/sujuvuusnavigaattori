@@ -910,14 +910,25 @@ $(document).ready () ->
         searchParams = searchString.split("&")
         target = undefined
         mode = undefined
-        usetransit = false
         for param in searchParams
             if index = param.indexOf("usetransit=yes") != -1
-                usetransit = true
-            if index = param.indexOf("mode=") != -1
+                console.log "usetransit=yes"
+                $('input[name=usetransit]').prop('checked', true)
+                $('#modesettings').find('input[name=BUS]').prop('checked', true)
+                $('#modesettings').find('input[name=TRAM]').prop('checked', true)
+                $('#modesettings').find('input[name=RAIL]').prop('checked', true)
+                $('#modesettings').find('input[name=SUBWAY]').prop('checked', true)
+            else if index = param.indexOf("usetransit=no") != -1
+                console.log "usetransit=no"
+                $('input[name=usetransit]').prop('checked', false)
+                $('#modesettings').find('input[name=BUS]').prop('checked', false)
+                $('#modesettings').find('input[name=TRAM]').prop('checked', false)
+                $('#modesettings').find('input[name=RAIL]').prop('checked', false)
+                $('#modesettings').find('input[name=SUBWAY]').prop('checked', false)
+            else if index = param.indexOf("mode=") != -1
                 mode = param.substring(index + 4, param.length)
                 $('input[name=vehiclesettings][value=' + mode + ']').prop('checked', true)
-            if index = param.indexOf("destination=") != -1
+            else if index = param.indexOf("destination=") != -1
                 destination = param.substring(index + 11, param.length)
                 #console.log destination
                 if destination.indexOf(',') != -1
@@ -925,21 +936,9 @@ $(document).ready () ->
                     lat = parts[0]
                     lng = parts[1]
                     target = new L.LatLng(parseFloat(lat), parseFloat(lng))
-        if usetransit is true
-            $('input[name=usetransit]').prop('checked', true)
-            $('#modesettings').find('input[name=BUS]').prop('checked', true)
-            $('#modesettings').find('input[name=TRAM]').prop('checked', true)
-            $('#modesettings').find('input[name=RAIL]').prop('checked', true)
-            $('#modesettings').find('input[name=SUBWAY]').prop('checked', true)
-        else
-            $('input[name=usetransit]').prop('checked', false)
-            $('#modesettings').find('input[name=BUS]').prop('checked', false)
-            $('#modesettings').find('input[name=TRAM]').prop('checked', false)
-            $('#modesettings').find('input[name=RAIL]').prop('checked', false)
-            $('#modesettings').find('input[name=SUBWAY]').prop('checked', false)
-        $('#wheelchair').prop('checked', false)
-        $('#prefer-free').prop('checked', false)
-        $('#use-speech').prop('checked', false)
+        #$('#wheelchair').prop('checked', false)
+        #$('#prefer-free').prop('checked', false)
+        #$('#use-speech').prop('checked', false)
         if target?
             set_target_marker(target)
             
