@@ -327,7 +327,7 @@ $(document).bind 'pagebeforechange', (e, data) ->
     u = $.mobile.path.parseUrl(data.toPage)
     console.log "url ", u
     vehicle_mode = $("input:checked[name=vehiclesettings]").val()
-    if u.hash.indexOf("map-page") != -1 and vehicle_mode is "BICYCLE"
+    if u.hash.indexOf("map-page") != -1 and vehicle_mode is "BICYCLE" and citynavi?.itinerary?.legs?
         console.log "making fluency data request to " + recorder_get_route_fluency_url
         points = ([point[0]*1e-5, point[1]*1e-5] for point in citynavi.itinerary.legs[0].legGeometry.points)
         console.log points.join()

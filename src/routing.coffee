@@ -925,10 +925,21 @@ $(document).ready () ->
                     lat = parts[0]
                     lng = parts[1]
                     target = new L.LatLng(parseFloat(lat), parseFloat(lng))
-        if mode? and mode is "WALK" and usetransit is true
+        if usetransit is true
             $('input[name=usetransit]').prop('checked', true)
+            $('#modesettings').find('input[name=BUS]').prop('checked', true)
+            $('#modesettings').find('input[name=TRAM]').prop('checked', true)
+            $('#modesettings').find('input[name=RAIL]').prop('checked', true)
+            $('#modesettings').find('input[name=SUBWAY]').prop('checked', true)
         else
             $('input[name=usetransit]').prop('checked', false)
+            $('#modesettings').find('input[name=BUS]').prop('checked', false)
+            $('#modesettings').find('input[name=TRAM]').prop('checked', false)
+            $('#modesettings').find('input[name=RAIL]').prop('checked', false)
+            $('#modesettings').find('input[name=SUBWAY]').prop('checked', false)
+        $('#wheelchair').prop('checked', false)
+        $('#prefer-free').prop('checked', false)
+        $('#use-speech').prop('checked', false)
         if target?
             set_target_marker(target)
             
