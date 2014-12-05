@@ -12,9 +12,10 @@ Main use cases:
 1. While navigating cycler records cycled route with speed data and shares it, so that cyclers can use the data to plan cycling routes.
 2. Cycler wants to share fluency data on streets from the navigator in realtime, so that cyclers can use the data for route planning right a way.
 
-The project is directly connected to two other projects:
+The project is directly connected to three other projects:
 * https://github.com/okffi/sujuvuusnavigaattori-server
 * https://github.com/okffi/sujuvuusnavigaattori-wrapper
+* https://github.com/okffi/sujuvuusnavigaattori-otp
 
 Open Data used:
 <ul>
