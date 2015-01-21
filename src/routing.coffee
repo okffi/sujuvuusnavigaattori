@@ -1132,7 +1132,7 @@ map.on 'locationfound', (e) ->
         .on 'click', (e) ->
             set_source_marker(point, {accuracy: radius, measure: measure})
 
-map.on 'click', (e) ->
+set_source_or_target_marker = (e) ->
     # don't react to map clicks after both markers have been set
     if sourceMarker? and targetMarker?
         return
@@ -1142,6 +1142,11 @@ map.on 'click', (e) ->
         set_source_marker(e.latlng, {popup: true})
     else if targetMarker == null
         set_target_marker(e.latlng)
+
+map.on 'click', set_source_or_target_marker
+
+# FIXME: Build a nicer interface sometime.
+citynavi.set_source_or_target_marker = set_source_or_target_marker
 
 # Create context menu that allows user to set source and target location as well as add error notes.
 # The menu is shown when the user keeps finger long time on the touchscreen (see contextmenu event
