@@ -56,6 +56,18 @@ $('#my-routes').bind 'pageinit', (e, data) ->
     $list.empty()
     $list.listview()
 
+$('#my-routes').on 'pageinit', (e, data) ->
+    # FIXME: Make an interface for the map or rename the global variable.
+    map = window.map_dbg
+    # Remove routing functionality.
+    map.off 'click', citynavi.set_source_or_target_marker
+
+$('#my-routes').on 'pagehide', (e, data) ->
+    # FIXME: Make an interface for the map or rename the global variable.
+    map = window.map_dbg
+    # Restore routing functionality.
+    map.on 'click', citynavi.set_source_or_target_marker
+
 $('#my-routes').bind 'pageshow', (e, data) ->
     $list = $('#my-routes ul')
     $list.empty()
@@ -317,6 +329,18 @@ $('#fluency-page').bind 'pagebeforehide', (e, o) ->
     if window.speedLegend?
         window.map_dbg.removeControl window.speedLegend
         window.speedLegend = undefined
+
+$('#fluency-page').on 'pageinit', (e, data) ->
+    # FIXME: Make an interface for the map or rename the global variable.
+    map = window.map_dbg
+    # Remove routing functionality.
+    map.off 'click', citynavi.set_source_or_target_marker
+
+$('#fluency-page').on 'pagehide', (e, data) ->
+    # FIXME: Make an interface for the map or rename the global variable.
+    map = window.map_dbg
+    # Restore routing functionality.
+    map.on 'click', citynavi.set_source_or_target_marker
 
 $(document).bind 'pagebeforechange', (e, data) ->
     console.log "in visualization pagebeforechange"
