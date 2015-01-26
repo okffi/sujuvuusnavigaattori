@@ -580,6 +580,7 @@ display_route_result = (data) ->
 # Renders each leg of the route to the map and also draws icons of real-time vehicle
 # locations to the map if available.
 render_route_layer = (itinerary, routeLayer) ->
+    
     legs = itinerary.legs
 
     vehicles = []
@@ -621,6 +622,7 @@ render_route_layer = (itinerary, routeLayer) ->
                 stop = leg.from
                 last_stop = leg.to
                 point = {y: stop.lat, x: stop.lon}
+                
                 icon = L.divIcon({className: "navigator-div-icon"})
                 label = "<span style='font-size: 24px;'><img src='static/images/#{google_icons[leg.routeType ? leg.mode]}' style='vertical-align: sub; height: 24px'/><span>#{leg.route}</span></span>"
 
@@ -643,6 +645,10 @@ render_route_layer = (itinerary, routeLayer) ->
                         minutes = "#{hours}:#{minutes}"
                     $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}"
                     setTimeout secondsCounter, 1000
+
+                etaCounter = do (leg, polyline) ->
+                    remaining_distance = leg.distance * L.GeometryUtil.locateOnLine(map, L.GeometryUtil.reverse(polyline), position_point)
+                    console.log("distance, ETA in seconds ", remaining_distance, remaining_distance / 5)
 
                 marker = L.marker(new L.LatLng(point.y, point.x), {icon: icon}).addTo(routeLayer)
                     .bindPopup("<b>Time: #{moment(leg.startTime).format("HH:mm")}&mdash;#{moment(leg.endTime).format("HH:mm")}</b><br /><b>From:</b> #{stop.name or ""}<br /><b>To:</b> #{last_stop.name or ""}")
