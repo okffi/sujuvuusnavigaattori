@@ -650,8 +650,10 @@ render_route_layer = (itinerary, routeLayer) ->
                     eta = new Date
                     eta = new Date(eta.getTime() + Math.round remaining_distance / 5 * 1000)                    
                     eta = eta.toTimeString().substr(0,5)
-                    console.log(eta)
-                    $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}, → #{eta}"
+                    if route_includes_transit
+                        $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds} → #{eta}"
+                    else
+                        $("#counter#{uid}").text "→ #{eta}"
                     `timeout=setTimeout (function() {
                         secondsCounter(leg, polyline);
                     }, 1000);`
@@ -661,7 +663,7 @@ render_route_layer = (itinerary, routeLayer) ->
 
                 # for transit and at itinerary start also walking, show counter
                 if leg.routeType? or leg == legs[0]
-                    marker.bindLabel(label + "<span id='counter#{uid}' class='counter firstleg#{leg == legs[0]} transitroute#{route_includes_transit}'></span>", {noHide: true})
+                    marker.bindLabel(label + "<span id='counter#{uid}' class='counter firstleg#{leg == legs[0]}'></span>", {noHide: true})
                     .showLabel()
 
                 if timeout
