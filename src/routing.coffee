@@ -4,6 +4,8 @@
 map = null
 map_under_drag = false # drag state
 
+timeout = null
+
 # Background map layers.
 layers = {}
 
@@ -629,7 +631,8 @@ render_route_layer = (itinerary, routeLayer) ->
                 # Define function to calculate the transit arrival time and update the element
                 # that has uid specific to this leg once per second by calling this function
                 # again. Uid has been calculated randomly above in the beginning of the for loop.
-                secondsCounter = () ->
+                
+                secondsCounter = (leg, polyline) ->
                     now = citynavi.time()
                     if leg.startTime >= now
                         duration = moment.duration(leg.startTime-now)
@@ -643,12 +646,15 @@ render_route_layer = (itinerary, routeLayer) ->
                     if (hours > 0)
                         minutes = (minutes+100).toString().substring(1)
                         minutes = "#{hours}:#{minutes}"
-                    $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}"
-                    setTimeout secondsCounter, 1000
-
-                etaCounter = do (leg, polyline) ->
                     remaining_distance = leg.distance * L.GeometryUtil.locateOnLine(map, L.GeometryUtil.reverse(polyline), position_point)
-                    console.log("distance, ETA in seconds ", remaining_distance, remaining_distance / 5)
+                    eta = new Date
+                    eta = new Date(eta.getTime() + Math.round remaining_distance / 5 * 1000)                    
+                    eta = eta.toTimeString().substr(0,5)
+                    console.log(eta)
+                    $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}, → #{eta}"
+                    `timeout=setTimeout (function() {
+                        secondsCounter(leg, polyline);
+                    }, 1000);`
 
                 marker = L.marker(new L.LatLng(point.y, point.x), {icon: icon}).addTo(routeLayer)
                     .bindPopup("<b>Time: #{moment(leg.startTime).format("HH:mm")}&mdash;#{moment(leg.endTime).format("HH:mm")}</b><br /><b>From:</b> #{stop.name or ""}<br /><b>To:</b> #{last_stop.name or ""}")
@@ -658,7 +664,10 @@ render_route_layer = (itinerary, routeLayer) ->
                     marker.bindLabel(label + "<span id='counter#{uid}' class='counter firstleg#{leg == legs[0]} transitroute#{route_includes_transit}'></span>", {noHide: true})
                     .showLabel()
 
-                    secondsCounter() # Start updating the time in the marker.
+                if timeout
+                    window.clearTimeout timeout
+                    timeout = null
+                secondsCounter leg, polyline # Start updating the time in the marker.
 
             if leg.routeType?
                 # By calling OTP transit/variantForTrip get the whole route for the vehicle,
