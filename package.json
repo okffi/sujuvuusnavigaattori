@@ -13,9 +13,7 @@
   "author": "",
   "license": "EUPL v1.2/AGPLv3",
   "readmeFilename": "README.md",
-  "//": ["Using dependencies instead of devDependencies to enable npm update.",
-         "More info at: https://github.com/isaacs/npm/issues/2369"],
-  "dependencies": {
+  "devDependencies": {
     "grunt": "0.x",
     "grunt-contrib-watch": "0.x",
     "grunt-contrib-coffee": "0.x",
