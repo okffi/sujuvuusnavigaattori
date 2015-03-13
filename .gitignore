@@ -14,6 +14,16 @@ report.html
 sauce_connect.log
 selenium-screenshot-*.png
 src/local_config.coffee
-static/js/*.js.map
+static/js
+!static/js/backbone*.js
+!static/js/jquery*.js
+!static/js/handlebars*.js
+!static/js/leaflet-osm-notes.js
+!static/js/leaflet.geometryutil.js
+!static/js/leaflet.js
+!static/js/leaflet.label.js
+!static/js/moment*.js
+!static/js/underscore*.js
+!static/js/images
 test_functional.tap
 testem.json
