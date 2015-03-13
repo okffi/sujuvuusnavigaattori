@@ -646,17 +646,17 @@ render_route_layer = (itinerary, routeLayer) ->
                     if (hours > 0)
                         minutes = (minutes+100).toString().substring(1)
                         minutes = "#{hours}:#{minutes}"
-                    remaining_distance = leg.distance * L.GeometryUtil.locateOnLine(map, L.GeometryUtil.reverse(polyline), position_point)
-                    eta = new Date
-                    eta = new Date(eta.getTime() + Math.round remaining_distance / 5 * 1000)                    
-                    eta = eta.toTimeString().substr(0,5)
-                    if route_includes_transit
-                        $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds} → #{eta}"
-                    else
-                        $("#counter#{uid}").text "→ #{eta}"
-                    `timeout=setTimeout (function() {
-                        secondsCounter(leg, polyline);
-                    }, 1000);`
+                    if position_point?
+                        remaining_distance = leg.distance * L.GeometryUtil.locateOnLine(map, L.GeometryUtil.reverse(polyline), position_point)
+                        eta = new Date(Date.now() + Math.round(remaining_distance / 5 * 1000))
+                        eta = moment(eta).format("HH:mm")
+                        if route_includes_transit
+                            $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds} → #{eta}"
+                        else
+                            $("#counter#{uid}").text "→ #{eta}"
+                    else if route_includes_transit
+                        $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}"
+                    timeout = setTimeout((=> secondsCounter(leg, polyline)), 1000)
 
                 marker = L.marker(new L.LatLng(point.y, point.x), {icon: icon}).addTo(routeLayer)
                     .bindPopup("<b>Time: #{moment(leg.startTime).format("HH:mm")}&mdash;#{moment(leg.endTime).format("HH:mm")}</b><br /><b>From:</b> #{stop.name or ""}<br /><b>To:</b> #{last_stop.name or ""}")
