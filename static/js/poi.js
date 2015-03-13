@@ -1,9 +1,9 @@
 (function() {
-  var GeocoderPOIProvider, POI, POICategory, POIProvider, WaagPOIProvider, generate_area_poi_categories, get_polygon_center, hel_geocoder_poi_url, icon_base_path, navigate_to_poi, position_missing_alert_shown, supported_poi_categories, supported_poi_providers, waag_id, waag_url, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  var GeocoderPOIProvider, POI, POICategory, POIProvider, WaagPOIProvider, generate_area_poi_categories, get_polygon_center, hel_geocoder_poi_url, icon_base_path, navigate_to_poi, position_missing_alert_shown, ref, supported_poi_categories, supported_poi_providers, waag_id, waag_url,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
-  _ref = citynavi.config, hel_geocoder_poi_url = _ref.hel_geocoder_poi_url, waag_url = _ref.waag_url, waag_id = _ref.waag_id, icon_base_path = _ref.icon_base_path;
+  ref = citynavi.config, hel_geocoder_poi_url = ref.hel_geocoder_poi_url, waag_url = ref.waag_url, waag_id = ref.waag_id, icon_base_path = ref.icon_base_path;
 
   POI = (function() {
     function POI(opts) {
@@ -23,8 +23,8 @@
 
   })();
 
-  GeocoderPOIProvider = (function(_super) {
-    __extends(GeocoderPOIProvider, _super);
+  GeocoderPOIProvider = (function(superClass) {
+    extend(GeocoderPOIProvider, superClass);
 
     function GeocoderPOIProvider() {
       return GeocoderPOIProvider.__super__.constructor.apply(this, arguments);
@@ -42,11 +42,11 @@
       }
       return $.getJSON(hel_geocoder_poi_url, params, (function(_this) {
         return function(data) {
-          var obj, poi, poi_list, _i, _len, _ref1;
+          var k, len, obj, poi, poi_list, ref1;
           poi_list = [];
-          _ref1 = data.objects;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            obj = _ref1[_i];
+          ref1 = data.objects;
+          for (k = 0, len = ref1.length; k < len; k++) {
+            obj = ref1[k];
             poi = new POI({
               name: obj.name,
               coords: [obj.location.coordinates[1], obj.location.coordinates[0]],
@@ -86,8 +86,8 @@
     return [x / f + off_.lat, y / f + off_.lng];
   };
 
-  WaagPOIProvider = (function(_super) {
-    __extends(WaagPOIProvider, _super);
+  WaagPOIProvider = (function(superClass) {
+    extend(WaagPOIProvider, superClass);
 
     function WaagPOIProvider() {
       return WaagPOIProvider.__super__.constructor.apply(this, arguments);
@@ -117,22 +117,22 @@
       }
       return $.getJSON("" + waag_url + waag_id + "/nodes", params, (function(_this) {
         return function(data) {
-          var coords, latlngs, p, poi, poi_list, points, poly, res, type, _i, _len, _ref1, _ref2, _ref3, _ref4;
+          var coords, k, latlngs, len, p, poi, poi_list, points, poly, ref1, ref2, ref3, ref4, res, type;
           poi_list = [];
-          _ref1 = data.results;
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            res = _ref1[_i];
+          ref1 = data.results;
+          for (k = 0, len = ref1.length; k < len; k++) {
+            res = ref1[k];
             type = res.geom.type;
             if (type === "Polygon") {
               points = res.geom.coordinates[0];
               latlngs = (function() {
-                var _j, _len1, _results;
-                _results = [];
-                for (_j = 0, _len1 = points.length; _j < _len1; _j++) {
-                  p = points[_j];
-                  _results.push(new L.LatLng(p[1], p[0]));
+                var l, len1, results;
+                results = [];
+                for (l = 0, len1 = points.length; l < len1; l++) {
+                  p = points[l];
+                  results.push(new L.LatLng(p[1], p[0]));
                 }
-                return _results;
+                return results;
               })();
               poly = new L.Polygon(latlngs);
               coords = get_polygon_center(poly);
@@ -144,7 +144,7 @@
               name: res.name,
               coords: coords,
               category: category,
-              "private": ((_ref2 = res.layers) != null ? (_ref3 = _ref2.osm) != null ? (_ref4 = _ref3.data) != null ? _ref4.access : void 0 : void 0 : void 0) === "private"
+              "private": ((ref2 = res.layers) != null ? (ref3 = ref2.osm) != null ? (ref4 = ref3.data) != null ? ref4.access : void 0 : void 0 : void 0) === "private"
             });
             poi_list.push(poi);
           }
@@ -267,15 +267,15 @@
   };
 
   generate_area_poi_categories = function(area) {
-    var cat, cat_list, prov, prov_cat, prov_cats, prov_name, _i, _len, _ref1;
+    var cat, cat_list, k, len, prov, prov_cat, prov_cats, prov_name, ref1;
     cat_list = [];
     for (prov_name in area.poi_providers) {
       prov = supported_poi_providers[prov_name];
       console.assert(prov);
       prov_cats = area.poi_providers[prov_name];
-      _ref1 = area.poi_providers[prov_name];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        prov_cat = _ref1[_i];
+      ref1 = area.poi_providers[prov_name];
+      for (k = 0, len = ref1.length; k < len; k++) {
+        prov_cat = ref1[k];
         cat = supported_poi_categories[prov_cat.type];
         console.assert(cat);
         console.assert(cat.provider === null);
@@ -305,12 +305,12 @@
   });
 
   $('#service-directory').bind('pageshow', function(e, data) {
-    var $list, category, index, _i, _len, _ref1;
+    var $list, category, index, k, len, ref1;
     $list = $('#service-directory ul');
     $list.empty();
-    _ref1 = citynavi.poi_categories;
-    for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-      category = _ref1[index];
+    ref1 = citynavi.poi_categories;
+    for (index = k = 0, len = ref1.length; k < len; index = ++k) {
+      category = ref1[index];
       $list.append("<li><a href=\"#service-list?category=" + index + "\"><img src=\"" + (category.get_icon_path()) + "\" class='ui-li-icon' style='height: 20px;'/>" + category.name + "</a></li>");
     }
     return $list.listview("refresh");
@@ -340,14 +340,14 @@
       return category.fetch_pois({
         location: current_location,
         callback: function(pois) {
-          var poi, _fn, _i, _len;
-          _fn = function(poi) {
+          var fn, k, len, poi;
+          fn = function(poi) {
             var $item, dist;
             if (!poi.name) {
               poi.name = "Unnamed " + (category.name.toLowerCase());
             }
             if (poi["private"]) {
-              poi.name = "" + poi.name + " (private)";
+              poi.name = poi.name + " (private)";
             }
             dist = poi.distance;
             if (dist >= 1000) {
@@ -364,9 +364,9 @@
             });
             return $list.append($item);
           };
-          for (_i = 0, _len = pois.length; _i < _len; _i++) {
-            poi = pois[_i];
-            _fn(poi);
+          for (k = 0, len = pois.length; k < len; k++) {
+            poi = pois[k];
+            fn(poi);
           }
           return $list.listview("refresh");
         }

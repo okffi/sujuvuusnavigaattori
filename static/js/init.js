@@ -1,16 +1,16 @@
 (function() {
-  var CityNavigator, console, method, methods, _fn, _i, _len;
+  var CityNavigator, console, fn, i, len, method, methods;
 
   if (!window.console) {
     console = {};
     window.console = console;
     methods = ['assert', 'clear', 'count', 'debug', 'dir', 'dirxml', 'error', 'exception', 'group', 'groupCollapsed', 'groupEnd', 'info', 'log', 'markTimeline', 'profile', 'profileEnd', 'table', 'time', 'timeEnd', 'timeStamp', 'trace', 'warn'];
-    _fn = function(method) {
+    fn = function(method) {
       return console[method] = function() {};
     };
-    for (_i = 0, _len = methods.length; _i < _len; _i++) {
-      method = methods[_i];
-      _fn(method);
+    for (i = 0, len = methods.length; i < len; i++) {
+      method = methods[i];
+      fn(method);
     }
   }
 

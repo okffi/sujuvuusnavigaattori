@@ -1,10 +1,10 @@
 (function() {
   var Service, ServiceList, ServiceListView, root_list, show_categories, srv_list, srv_list_view,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
-  Service = (function(_super) {
-    __extends(Service, _super);
+  Service = (function(superClass) {
+    extend(Service, superClass);
 
     function Service() {
       return Service.__super__.constructor.apply(this, arguments);
@@ -24,11 +24,11 @@
     };
 
     Service.prototype.get_children = function() {
-      var child, child_list, id, _i, _len, _ref;
+      var child, child_list, i, id, len, ref;
       child_list = [];
-      _ref = this.get('child_ids');
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        id = _ref[_i];
+      ref = this.get('child_ids');
+      for (i = 0, len = ref.length; i < len; i++) {
+        id = ref[i];
         child = this.collection.get(id);
         child_list.push(child);
       }
@@ -49,8 +49,8 @@
 
   })(Backbone.Model);
 
-  ServiceList = (function(_super) {
-    __extends(ServiceList, _super);
+  ServiceList = (function(superClass) {
+    extend(ServiceList, superClass);
 
     function ServiceList() {
       return ServiceList.__super__.constructor.apply(this, arguments);
@@ -74,22 +74,22 @@
     ServiceList.prototype.find_parents = function() {
       return this.forEach((function(_this) {
         return function(srv) {
-          var child, child_id, _i, _len, _ref, _results;
+          var child, child_id, i, len, ref, results;
           if (!srv.get('child_ids')) {
             return;
           }
-          _ref = srv.get('child_ids');
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            child_id = _ref[_i];
+          ref = srv.get('child_ids');
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            child_id = ref[i];
             child = _this.get(child_id);
             if (!child) {
 
             } else {
-              _results.push(child.set('parent', srv.id));
+              results.push(child.set('parent', srv.id));
             }
           }
-          return _results;
+          return results;
         };
       })(this));
     };
@@ -108,7 +108,7 @@
     };
 
     ServiceList.prototype.load_from_cache = function() {
-      var id, root_ids, srv, srv_attrs, srv_list, srv_root, _i, _len;
+      var i, id, len, root_ids, srv, srv_attrs, srv_list, srv_root;
       console.log("load cache");
       if (!localStorage) {
         return false;
@@ -119,8 +119,8 @@
       }
       root_ids = JSON.parse(srv_root);
       srv_list = [];
-      for (_i = 0, _len = root_ids.length; _i < _len; _i++) {
-        id = root_ids[_i];
+      for (i = 0, len = root_ids.length; i < len; i++) {
+        id = root_ids[i];
         srv = new Service({
           id: id
         });
@@ -143,8 +143,8 @@
 
   })(Backbone.Collection);
 
-  ServiceListView = (function(_super) {
-    __extends(ServiceListView, _super);
+  ServiceListView = (function(superClass) {
+    extend(ServiceListView, superClass);
 
     function ServiceListView() {
       return ServiceListView.__super__.constructor.apply(this, arguments);

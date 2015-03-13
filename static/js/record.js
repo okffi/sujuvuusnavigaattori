@@ -1,7 +1,7 @@
 (function() {
-  var MAX_LOCATION_ACCURACY_ERROR, MAX_TIME_BETWEEN_ROUTE_POINTS, MAX_TRACK_ERROR_DIST, NEAR_CROSSING_MAX_DIST, create_fluency_data, deg2rad, delete_recording_id, delete_trace_seq, distSum, find_nearest_route_crossing_point, find_nearest_route_point, finish_trace_recording, form_raw_trace, form_route_trace, get_distance, get_recording, get_recording_id, get_route_points, get_timestamp, get_trace_seq, google_url, handle_geo_result, info, is_recording, previous_crossing_latlng, previous_good_location_timestamp, rawDistSum, recorder_login_url, recorder_post_plan_url, recorder_post_route_url, recorder_post_trace_seq_url, recording_id, resend_failed_data_if_any, reset_routing_data, reverse_geocode, routeVisualizationColors, save_failed_send, send_data_to_server, send_plan_to_server, send_trace_seq_to_server, start_recording, stop_recording, store_recording_id, store_trace, timeSum, uniqueId, update_current_recording_endTime, update_current_recording_gps_speed, update_current_recording_raw_dist, update_current_recording_route_dist, update_current_recording_speed, update_current_recording_to_place, update_raw_distance, wakelocked, was_on_route, _ref;
+  var MAX_LOCATION_ACCURACY_ERROR, MAX_TIME_BETWEEN_ROUTE_POINTS, MAX_TRACK_ERROR_DIST, NEAR_CROSSING_MAX_DIST, create_fluency_data, deg2rad, delete_recording_id, delete_trace_seq, distSum, find_nearest_route_crossing_point, find_nearest_route_point, finish_trace_recording, form_raw_trace, form_route_trace, get_distance, get_recording, get_recording_id, get_route_points, get_timestamp, get_trace_seq, google_url, handle_geo_result, info, is_recording, previous_crossing_latlng, previous_good_location_timestamp, rawDistSum, recorder_login_url, recorder_post_plan_url, recorder_post_route_url, recorder_post_trace_seq_url, recording_id, ref, resend_failed_data_if_any, reset_routing_data, reverse_geocode, routeVisualizationColors, save_failed_send, send_data_to_server, send_plan_to_server, send_trace_seq_to_server, start_recording, stop_recording, store_recording_id, store_trace, timeSum, uniqueId, update_current_recording_endTime, update_current_recording_gps_speed, update_current_recording_raw_dist, update_current_recording_route_dist, update_current_recording_speed, update_current_recording_to_place, update_raw_distance, wakelocked, was_on_route;
 
-  _ref = citynavi.config, recorder_login_url = _ref.recorder_login_url, recorder_post_route_url = _ref.recorder_post_route_url, recorder_post_plan_url = _ref.recorder_post_plan_url, recorder_post_trace_seq_url = _ref.recorder_post_trace_seq_url, google_url = _ref.google_url;
+  ref = citynavi.config, recorder_login_url = ref.recorder_login_url, recorder_post_route_url = ref.recorder_post_route_url, recorder_post_plan_url = ref.recorder_post_plan_url, recorder_post_trace_seq_url = ref.recorder_post_trace_seq_url, google_url = ref.google_url;
 
   MAX_TRACK_ERROR_DIST = 20;
 
@@ -75,7 +75,7 @@
   }, false);
 
   stop_recording = function() {
-    var routeline, _i, _len, _ref1;
+    var j, len, ref1, routeline;
     if (window.speedLegend != null) {
       window.map_dbg.removeControl(info);
     }
@@ -88,9 +88,9 @@
     reset_routing_data();
     delete_trace_seq();
     window.map_dbg.removeLayer(window.rawline);
-    _ref1 = window.routelines;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      routeline = _ref1[_i];
+    ref1 = window.routelines;
+    for (j = 0, len = ref1.length; j < len; j++) {
+      routeline = ref1[j];
       window.map_dbg.removeLayer(routeline);
     }
     window.routelines = [];
@@ -119,7 +119,7 @@
   };
 
   finish_trace_recording = function() {
-    var avgGPSSpeed, speedCount, speedSum, trace, trace_seq, _i, _len;
+    var avgGPSSpeed, j, len, speedCount, speedSum, trace, trace_seq;
     update_current_recording_endTime(get_timestamp());
     trace_seq = get_trace_seq();
     if (trace_seq != null) {
@@ -129,8 +129,8 @@
       }
       speedSum = 0;
       speedCount = 0;
-      for (_i = 0, _len = trace_seq.length; _i < _len; _i++) {
-        trace = trace_seq[_i];
+      for (j = 0, len = trace_seq.length; j < len; j++) {
+        trace = trace_seq[j];
         if ((trace != null ? trace.speed : void 0) != null) {
           speedSum += trace.speed;
           speedCount++;
@@ -223,15 +223,15 @@
   };
 
   resend_failed_data_if_any = function() {
-    var data, failed_send_data, failed_send_data_string, jqxhr, _i, _len, _results;
+    var data, failed_send_data, failed_send_data_string, j, jqxhr, len, results;
     failed_send_data_string = localStorage['failed_send_data'];
     if (failed_send_data_string != null) {
       failed_send_data = JSON.parse(failed_send_data_string);
       localStorage.removeItem('failed_send_data');
-      _results = [];
-      for (_i = 0, _len = failed_send_data.length; _i < _len; _i++) {
-        data = failed_send_data[_i];
-        _results.push(jqxhr = $.ajax({
+      results = [];
+      for (j = 0, len = failed_send_data.length; j < len; j++) {
+        data = failed_send_data[j];
+        results.push(jqxhr = $.ajax({
           url: data.url,
           data: JSON.stringify(data.payload),
           contentType: 'application/json',
@@ -243,7 +243,7 @@
           return save_failed_send(data.url, data.payload);
         }));
       }
-      return _results;
+      return results;
     }
   };
 
@@ -318,7 +318,7 @@
   recording_id = null;
 
   store_recording_id = function(id) {
-    var found, location, record, recordings, recordings_string, _i, _len;
+    var found, j, len, location, record, recordings, recordings_string;
     recording_id = id;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
@@ -326,8 +326,8 @@
     } else {
       recordings = [];
       found = false;
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === id) {
           found = true;
           break;
@@ -421,15 +421,15 @@
   };
 
   handle_geo_result = function(result, params) {
-    var address, record, recordings, recordings_string, _i, _ref1, _results;
-    address = result != null ? (_ref1 = result.results) != null ? _ref1[0].formatted_address : void 0 : void 0;
+    var address, j, record, recordings, recordings_string, ref1, results;
+    address = result != null ? (ref1 = result.results) != null ? ref1[0].formatted_address : void 0 : void 0;
     if (address != null) {
       recordings_string = localStorage['recordings'];
       if (recordings_string != null) {
         recordings = JSON.parse(recordings_string);
-        _results = [];
-        for (_i = recordings.length - 1; _i >= 0; _i += -1) {
-          record = recordings[_i];
+        results = [];
+        for (j = recordings.length - 1; j >= 0; j += -1) {
+          record = recordings[j];
           if (record.id === params[0]) {
             if (params[1] === 'to') {
               record.to.name.okf = address;
@@ -439,10 +439,10 @@
             localStorage['recordings'] = JSON.stringify(recordings);
             break;
           } else {
-            _results.push(void 0);
+            results.push(void 0);
           }
         }
-        return _results;
+        return results;
       }
     }
   };
@@ -460,12 +460,12 @@
   };
 
   get_recording = function(id) {
-    var record, recordings, recordings_string, _i, _len;
+    var j, len, record, recordings, recordings_string;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === id) {
           return record;
         }
@@ -475,93 +475,93 @@
   };
 
   update_current_recording_endTime = function(value) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.endTime = value;
           localStorage['recordings'] = JSON.stringify(recordings);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
   update_current_recording_speed = function(value) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.avgSpeed = value;
           localStorage['recordings'] = JSON.stringify(recordings);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
   update_current_recording_route_dist = function(value) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.recordedRouteDistance = value;
           localStorage['recordings'] = JSON.stringify(recordings);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
   update_current_recording_raw_dist = function(value) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.rawDistance = value;
           localStorage['recordings'] = JSON.stringify(recordings);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
   update_current_recording_to_place = function(lat, lng) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.to.location.lat = lat;
           record.to.location.lng = lng;
@@ -569,30 +569,30 @@
           reverse_geocode(lat, lng, handle_geo_result, [record.id, 'to']);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
   update_current_recording_gps_speed = function(value) {
-    var record, recordings, recordings_string, _i, _len, _results;
+    var j, len, record, recordings, recordings_string, results;
     recordings_string = localStorage['recordings'];
     if (recordings_string != null) {
       recordings = JSON.parse(recordings_string);
-      _results = [];
-      for (_i = 0, _len = recordings.length; _i < _len; _i++) {
-        record = recordings[_i];
+      results = [];
+      for (j = 0, len = recordings.length; j < len; j++) {
+        record = recordings[j];
         if (record.id === get_recording_id()) {
           record.avgGPSSpeed = value;
           localStorage['recordings'] = JSON.stringify(recordings);
           break;
         } else {
-          _results.push(void 0);
+          results.push(void 0);
         }
       }
-      return _results;
+      return results;
     }
   };
 
@@ -631,14 +631,14 @@
   };
 
   info.update = function() {
-    var color, html, _i, _len, _ref1;
+    var color, html, j, len, ref1;
     html = '<div>Avg. speed</div>';
     console.log("creating color divs");
     routeVisualizationColors = window.routeVisualizationColors;
     console.log(routeVisualizationColors);
-    _ref1 = routeVisualizationColors.cycling;
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      color = _ref1[_i];
+    ref1 = routeVisualizationColors.cycling;
+    for (j = 0, len = ref1.length; j < len; j++) {
+      color = ref1[j];
       console.log("creating div");
       html += '<div><span style="color:' + color.color + ';">&#9608; ' + color.lowerSpeedLimit + '-' + (color.higherSpeedLimit != null ? color.higherSpeedLimit : "" + '</span></div>');
     }
@@ -738,7 +738,7 @@
   };
 
   create_fluency_data = function(previous_crossing_latlng, crossing_latlng, was_on_route) {
-    var avgSpeed, color, dist, endTimeStamp, i, overallSpeed, routeLine, routeVisColor, route_points, speedCount, speedSum, startTimeStamp, timeDiff, trace_seq, _i, _j, _len, _ref1, _ref2;
+    var avgSpeed, color, dist, endTimeStamp, i, j, k, len, overallSpeed, ref1, ref2, routeLine, routeVisColor, route_points, speedCount, speedSum, startTimeStamp, timeDiff, trace_seq;
     speedSum = 0;
     speedCount = 0;
     trace_seq = get_trace_seq();
@@ -749,7 +749,7 @@
     route_points = get_route_points(previous_crossing_latlng, crossing_latlng);
     console.log(route_points);
     dist = 0;
-    for (i = _i = 0, _ref1 = route_points.length - 1; 0 <= _ref1 ? _i < _ref1 : _i > _ref1; i = 0 <= _ref1 ? ++_i : --_i) {
+    for (i = j = 0, ref1 = route_points.length - 1; 0 <= ref1 ? j < ref1 : j > ref1; i = 0 <= ref1 ? ++j : --j) {
       dist += get_distance(route_points[i][0], route_points[i][1], route_points[i + 1][0], route_points[i + 1][1]);
     }
     avgSpeed = -1;
@@ -765,9 +765,9 @@
       update_current_recording_route_dist(distSum);
     }
     color = 'black';
-    _ref2 = routeVisualizationColors.cycling;
-    for (_j = 0, _len = _ref2.length; _j < _len; _j++) {
-      routeVisColor = _ref2[_j];
+    ref2 = routeVisualizationColors.cycling;
+    for (k = 0, len = ref2.length; k < len; k++) {
+      routeVisColor = ref2[k];
       if (avgSpeed >= routeVisColor.lowerSpeedLimit) {
         if ((routeVisColor.higherSpeedLimit == null) || avgSpeed < routeVisColor.higherSpeedLimit) {
           color = routeVisColor.color;
@@ -835,22 +835,22 @@
   };
 
   get_route_points = function(latlng_start, latlng_end) {
-    var found_end, found_start, point, points, route_points, _i, _len;
+    var found_end, found_start, j, len, point, points, route_points;
     route_points = [];
     points = (function() {
-      var _i, _len, _ref1, _results;
-      _ref1 = citynavi.itinerary.legs[0].legGeometry.points;
-      _results = [];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        point = _ref1[_i];
-        _results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
+      var j, len, ref1, results;
+      ref1 = citynavi.itinerary.legs[0].legGeometry.points;
+      results = [];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        point = ref1[j];
+        results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
       }
-      return _results;
+      return results;
     })();
     found_start = false;
     found_end = false;
-    for (_i = 0, _len = points.length; _i < _len; _i++) {
-      point = points[_i];
+    for (j = 0, len = points.length; j < len; j++) {
+      point = points[j];
       if (found_start === true) {
         route_points.push([point.lat, point.lng]);
         if (point.lat === latlng_end.lat && point.lng === latlng_end.lng) {
@@ -891,14 +891,14 @@
   find_nearest_route_crossing_point = function(latlng) {
     var ll, point, points;
     points = (function() {
-      var _i, _len, _ref1, _results;
-      _ref1 = citynavi.itinerary.legs[0].legGeometry.points;
-      _results = [];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        point = _ref1[_i];
-        _results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
+      var j, len, ref1, results;
+      ref1 = citynavi.itinerary.legs[0].legGeometry.points;
+      results = [];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        point = ref1[j];
+        results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
       }
-      return _results;
+      return results;
     })();
     return ll = L.GeometryUtil.closest(window.map_dbg, points, latlng, true);
   };
@@ -906,14 +906,14 @@
   find_nearest_route_point = function(latlng) {
     var ll, point, points;
     points = (function() {
-      var _i, _len, _ref1, _results;
-      _ref1 = citynavi.itinerary.legs[0].legGeometry.points;
-      _results = [];
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        point = _ref1[_i];
-        _results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
+      var j, len, ref1, results;
+      ref1 = citynavi.itinerary.legs[0].legGeometry.points;
+      results = [];
+      for (j = 0, len = ref1.length; j < len; j++) {
+        point = ref1[j];
+        results.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
       }
-      return _results;
+      return results;
     })();
     return ll = L.GeometryUtil.closest(window.map_dbg, points, latlng, false);
   };

@@ -1,15 +1,15 @@
 (function() {
-  var Autocompleter, Bag42Completer, CategoryPrediction, GeocoderCompleter, GoogleCompleter, GoogleLocation, HistoryCompleter, Location, LocationHistory, LocationPrediction, OSMCompleter, POICategoryCompleter, Prediction, RemoteAutocompleter, accent_insensitive_pattern, completers, generate_area_completers, get_all_predictions, google_url, hel_geocoder_address_url, letters_to_accents, navigate_to_location, navigate_to_poi, nominatim_url, pred_list, render_autocomplete_results, supported_completers, test_completer, _ref,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+  var Autocompleter, Bag42Completer, CategoryPrediction, GeocoderCompleter, GoogleCompleter, GoogleLocation, HistoryCompleter, Location, LocationHistory, LocationPrediction, OSMCompleter, POICategoryCompleter, Prediction, RemoteAutocompleter, accent_insensitive_pattern, completers, generate_area_completers, get_all_predictions, google_url, hel_geocoder_address_url, letters_to_accents, navigate_to_location, navigate_to_poi, nominatim_url, pred_list, ref, render_autocomplete_results, supported_completers, test_completer,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  _ref = citynavi.config, hel_geocoder_address_url = _ref.hel_geocoder_address_url, google_url = _ref.google_url, nominatim_url = _ref.nominatim_url;
+  ref = citynavi.config, hel_geocoder_address_url = ref.hel_geocoder_address_url, google_url = ref.google_url, nominatim_url = ref.nominatim_url;
 
   Location = (function() {
-    function Location(name, coords) {
-      this.name = name;
-      this.coords = coords;
+    function Location(name1, coords1) {
+      this.name = name1;
+      this.coords = coords1;
     }
 
     Location.prototype.fetch_details = function(callback, args) {
@@ -35,7 +35,7 @@
 
   LocationHistory = (function() {
     function LocationHistory(ls_id) {
-      var l, loc, s, _i, _len, _ref1;
+      var j, l, len, loc, ref1, s;
       this.ls_id = ls_id;
       s = localStorage[this.ls_id];
       if (s) {
@@ -44,9 +44,9 @@
         this.array = [];
       }
       this.history = [];
-      _ref1 = this.array;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        l = _ref1[_i];
+      ref1 = this.array;
+      for (j = 0, len = ref1.length; j < len; j++) {
+        l = ref1[j];
         loc = Location.from_json(l);
         this.history.push(loc);
       }
@@ -86,7 +86,7 @@
           $.mobile.showPageLoadingMsg();
           return this.location.fetch_details(navigate_to_location, this.location);
         } else {
-          $input.val("" + this.location.street + " ");
+          $input.val(this.location.street + " ");
           $input.focus();
           return $input.trigger("keyup");
         }
@@ -105,7 +105,7 @@
     };
 
     Prediction.prototype.render = function() {
-      var $el, dest_page, icon_html, name, _ref1;
+      var $el, dest_page, icon_html, name, ref1;
       icon_html = '';
       name = this.name;
       if (this.type === "category") {
@@ -115,7 +115,7 @@
       } else {
         dest_page = "map-page";
       }
-      if (((_ref1 = this.location) != null ? _ref1.icon : void 0) != null) {
+      if (((ref1 = this.location) != null ? ref1.icon : void 0) != null) {
         icon_html = "<img src='" + this.location.icon + "'>";
       }
       $el = $("<li><a href='#" + dest_page + "'>" + icon_html + name + "</a></li>");
@@ -127,8 +127,8 @@
 
   })();
 
-  LocationPrediction = (function(_super) {
-    __extends(LocationPrediction, _super);
+  LocationPrediction = (function(superClass) {
+    extend(LocationPrediction, superClass);
 
     function LocationPrediction(loc) {
       this.location = loc;
@@ -140,8 +140,8 @@
 
   })(Prediction);
 
-  CategoryPrediction = (function(_super) {
-    __extends(CategoryPrediction, _super);
+  CategoryPrediction = (function(superClass) {
+    extend(CategoryPrediction, superClass);
 
     function CategoryPrediction(cat) {
       this.category = cat;
@@ -160,8 +160,8 @@
 
   })();
 
-  RemoteAutocompleter = (function(_super) {
-    __extends(RemoteAutocompleter, _super);
+  RemoteAutocompleter = (function(superClass) {
+    extend(RemoteAutocompleter, superClass);
 
     function RemoteAutocompleter() {
       this.xhr = null;
@@ -185,10 +185,10 @@
     };
 
     RemoteAutocompleter.prototype.submit_location_predictions = function(loc_list) {
-      var loc, pred_list, _i, _len;
+      var j, len, loc, pred_list;
       pred_list = [];
-      for (_i = 0, _len = loc_list.length; _i < _len; _i++) {
-        loc = loc_list[_i];
+      for (j = 0, len = loc_list.length; j < len; j++) {
+        loc = loc_list[j];
         pred_list.push(new LocationPrediction(loc));
       }
       return this.callback(this.callback_args, pred_list);
@@ -213,8 +213,8 @@
 
   })(Autocompleter);
 
-  GeocoderCompleter = (function(_super) {
-    __extends(GeocoderCompleter, _super);
+  GeocoderCompleter = (function(superClass) {
+    extend(GeocoderCompleter, superClass);
 
     function GeocoderCompleter() {
       return GeocoderCompleter.__super__.constructor.apply(this, arguments);
@@ -245,11 +245,11 @@
       })(this));
       return this.xhr.done((function(_this) {
         return function(data) {
-          var adr, coords, loc, loc_list, objs, _i, _len;
+          var adr, coords, j, len, loc, loc_list, objs;
           objs = data.objects;
           loc_list = [];
-          for (_i = 0, _len = objs.length; _i < _len; _i++) {
-            adr = objs[_i];
+          for (j = 0, len = objs.length; j < len; j++) {
+            adr = objs[j];
             coords = adr.location.coordinates;
             loc = new Location(adr.name, [coords[1], coords[0]]);
             loc.street = $.trim(adr.street);
@@ -285,12 +285,12 @@
       })(this));
       return this.xhr.done((function(_this) {
         return function(data) {
-          var loc, loc_dict, loc_list, objs, street, strt, _i, _len;
+          var j, len, loc, loc_dict, loc_list, objs, street, strt;
           objs = data.objects;
           loc_list = [];
           loc_dict = {};
-          for (_i = 0, _len = objs.length; _i < _len; _i++) {
-            street = objs[_i];
+          for (j = 0, len = objs.length; j < len; j++) {
+            street = objs[j];
             strt = $.trim(street.street);
             if (strt in loc_dict) {
               continue;
@@ -315,8 +315,8 @@
 
   })(RemoteAutocompleter);
 
-  Bag42Completer = (function(_super) {
-    __extends(Bag42Completer, _super);
+  Bag42Completer = (function(superClass) {
+    extend(Bag42Completer, superClass);
 
     function Bag42Completer() {
       return Bag42Completer.__super__.constructor.apply(this, arguments);
@@ -339,12 +339,12 @@
       })(this));
       return this.xhr.done((function(_this) {
         return function(data) {
-          var adr, coords, loc, loc_list, objs, _i, _len, _ref1;
+          var adr, coords, j, len, loc, loc_list, objs, ref1;
           objs = data.results;
           loc_list = [];
-          _ref1 = objs || [];
-          for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-            adr = _ref1[_i];
+          ref1 = objs || [];
+          for (j = 0, len = ref1.length; j < len; j++) {
+            adr = ref1[j];
             coords = adr.geometry.location;
             loc = new Location(adr.formatted_address.replace(/\n/g, ", "), [coords.lat, coords.lng]);
             loc_list.push(loc);
@@ -358,8 +358,8 @@
 
   })(RemoteAutocompleter);
 
-  GoogleLocation = (function(_super) {
-    __extends(GoogleLocation, _super);
+  GoogleLocation = (function(superClass) {
+    extend(GoogleLocation, superClass);
 
     function GoogleLocation(pred) {
       this.name = pred.description;
@@ -387,8 +387,8 @@
 
   })(Location);
 
-  GoogleCompleter = (function(_super) {
-    __extends(GoogleCompleter, _super);
+  GoogleCompleter = (function(superClass) {
+    extend(GoogleCompleter, superClass);
 
     function GoogleCompleter() {
       return GoogleCompleter.__super__.constructor.apply(this, arguments);
@@ -419,13 +419,13 @@
       })(this));
       return this.xhr.done((function(_this) {
         return function(data) {
-          var city_name, loc, loc_list, pred, preds, _i, _len;
+          var city_name, j, len, loc, loc_list, pred, preds;
           preds = data.predictions;
           loc_list = [];
-          for (_i = 0, _len = preds.length; _i < _len; _i++) {
-            pred = preds[_i];
+          for (j = 0, len = preds.length; j < len; j++) {
+            pred = preds[j];
             city_name = pred.terms[1].value;
-            if (area.cities && __indexOf.call(area.cities, city_name) < 0) {
+            if (area.cities && indexOf.call(area.cities, city_name) < 0) {
               continue;
             }
             if (area.google_suffix && pred.description.lastIndexOf(area.google_suffix) === pred.description.length - area.google_suffix.length) {
@@ -483,8 +483,8 @@
     'Z': '[Zz\u0179-\u017e\u01f1-\u01f3\u1dbb\u1e90-\u1e95\u2124\u2128\u24b5\u24cf\u24e9\u3390-\u3394\uff3a\uff5a]'
   };
 
-  OSMCompleter = (function(_super) {
-    __extends(OSMCompleter, _super);
+  OSMCompleter = (function(superClass) {
+    extend(OSMCompleter, superClass);
 
     function OSMCompleter() {
       return OSMCompleter.__super__.constructor.apply(this, arguments);
@@ -521,25 +521,25 @@
       })(this));
       return this.xhr.done((function(_this) {
         return function(data) {
-          var addr, display, is_street, loc, loc_list, name, number, obj, part, pattern, query_filter_patterns, street, suburb, type, typename, _i, _len, _ref1, _ref2;
+          var addr, display, is_street, j, len, loc, loc_list, name, number, obj, part, pattern, query_filter_patterns, ref1, ref2, street, suburb, type, typename;
           loc_list = [];
           query_filter_patterns = (function() {
-            var _i, _len, _ref1, _results;
-            _ref1 = this.query.split(" ");
-            _results = [];
-            for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-              part = _ref1[_i];
-              _results.push(accent_insensitive_pattern(part));
+            var j, len, ref1, results;
+            ref1 = this.query.split(" ");
+            results = [];
+            for (j = 0, len = ref1.length; j < len; j++) {
+              part = ref1[j];
+              results.push(accent_insensitive_pattern(part));
             }
-            return _results;
+            return results;
           }).call(_this);
-          for (_i = 0, _len = data.length; _i < _len; _i++) {
-            obj = data[_i];
-            console.log("" + obj.osm_type + " " + obj["class"] + " " + obj.type + " " + obj.display_name, obj);
+          for (j = 0, len = data.length; j < len; j++) {
+            obj = data[j];
+            console.log(obj.osm_type + " " + obj["class"] + " " + obj.type + " " + obj.display_name, obj);
             addr = obj.address;
             display = "";
             name = null;
-            if (((_ref1 = area.cities) != null ? _ref1.length : void 0) && !(_ref2 = addr.city, __indexOf.call(area.cities, _ref2) >= 0)) {
+            if (((ref1 = area.cities) != null ? ref1.length : void 0) && !(ref2 = addr.city, indexOf.call(area.cities, ref2) >= 0)) {
               continue;
             }
             type = obj.type;
@@ -560,31 +560,31 @@
               }
               display += ", " + addr.city;
             } else if (suburb) {
-              display += "" + suburb + ", " + addr.city;
+              display += suburb + ", " + addr.city;
             } else {
               display += addr.city;
             }
             if (display.length && name && !(type === 'city' || type === 'suburb' || type === 'neighbourhood' || type === 'pedestrian' || type === 'cycleway')) {
-              display = "" + name + ", " + display;
+              display = name + ", " + display;
             }
             if (display.length && !obj.icon && (name || !number) && !is_street) {
               typename = type.replace(/_/g, " ");
               typename = typename.replace(/^./, function(c) {
                 return c.toUpperCase();
               });
-              display = "" + typename + ": " + display;
+              display = typename + ": " + display;
             }
             if (display.length && (name || street || obj.icon) && (obj.lat != null) && (obj.lon != null)) {
               if (!_.all((function() {
-                var _j, _len1, _results;
-                _results = [];
-                for (_j = 0, _len1 = query_filter_patterns.length; _j < _len1; _j++) {
-                  pattern = query_filter_patterns[_j];
-                  _results.push(display.match(pattern));
+                var k, len1, results;
+                results = [];
+                for (k = 0, len1 = query_filter_patterns.length; k < len1; k++) {
+                  pattern = query_filter_patterns[k];
+                  results.push(display.match(pattern));
                 }
-                return _results;
+                return results;
               })())) {
-                console.log("" + display + " doesn't match " + _this.query);
+                console.log(display + " doesn't match " + _this.query);
                 continue;
               }
               loc = new Location("" + display, [obj.lat, obj.lon]);
@@ -609,8 +609,8 @@
 
   })(RemoteAutocompleter);
 
-  POICategoryCompleter = (function(_super) {
-    __extends(POICategoryCompleter, _super);
+  POICategoryCompleter = (function(superClass) {
+    extend(POICategoryCompleter, superClass);
 
     function POICategoryCompleter() {
       return POICategoryCompleter.__super__.constructor.apply(this, arguments);
@@ -619,15 +619,15 @@
     POICategoryCompleter.DESCRIPTION = "POI categories";
 
     POICategoryCompleter.prototype.get_predictions = function(query, callback, args) {
-      var cat, pred_list, q, ss, _i, _len, _ref1;
+      var cat, j, len, pred_list, q, ref1, ss;
       if (!query.length) {
         return;
       }
       pred_list = [];
       q = query.toLowerCase();
-      _ref1 = citynavi.poi_categories;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        cat = _ref1[_i];
+      ref1 = citynavi.poi_categories;
+      for (j = 0, len = ref1.length; j < len; j++) {
+        cat = ref1[j];
         ss = cat.name.slice(0, q.length).toLowerCase();
         if (ss !== q) {
           continue;
@@ -641,8 +641,8 @@
 
   })(Autocompleter);
 
-  HistoryCompleter = (function(_super) {
-    __extends(HistoryCompleter, _super);
+  HistoryCompleter = (function(superClass) {
+    extend(HistoryCompleter, superClass);
 
     function HistoryCompleter() {
       return HistoryCompleter.__super__.constructor.apply(this, arguments);
@@ -651,12 +651,12 @@
     HistoryCompleter.DESCRIPTION = "Destination history";
 
     HistoryCompleter.prototype.get_predictions = function(query, callback, args) {
-      var location, pred_list, _i, _ref1;
+      var j, location, pred_list, ref1;
       console.log("historycompleter");
       pred_list = [];
-      _ref1 = location_history.history;
-      for (_i = _ref1.length - 1; _i >= 0; _i += -1) {
-        location = _ref1[_i];
+      ref1 = location_history.history;
+      for (j = ref1.length - 1; j >= 0; j += -1) {
+        location = ref1[j];
         if (query.length && location.name.toLowerCase().indexOf(query.toLowerCase()) !== 0) {
           continue;
         }
@@ -682,14 +682,14 @@
   };
 
   generate_area_completers = function(area) {
-    var id, _i, _len, _ref1, _results;
-    _ref1 = area.autocompletion_providers;
-    _results = [];
-    for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-      id = _ref1[_i];
-      _results.push(supported_completers[id]);
+    var id, j, len, ref1, results;
+    ref1 = area.autocompletion_providers;
+    results = [];
+    for (j = 0, len = ref1.length; j < len; j++) {
+      id = ref1[j];
+      results.push(supported_completers[id]);
     }
-    return _results;
+    return results;
   };
 
   completers = generate_area_completers(citynavi.config);
@@ -721,10 +721,10 @@
   };
 
   get_all_predictions = function(input, callback, callback_options) {
-    var c, deferred, i, prediction_callback, prev_deferred, _i, _len;
+    var c, deferred, i, j, len, prediction_callback, prev_deferred;
     input = $.trim(input);
     prev_deferred = $.Deferred().resolve();
-    for (i = _i = 0, _len = completers.length; _i < _len; i = ++_i) {
+    for (i = j = 0, len = completers.length; j < len; i = ++j) {
       c = completers[i];
       if (c.remote) {
         if (input.length < 3) {
@@ -751,7 +751,7 @@
   pred_list = [];
 
   render_autocomplete_results = function(args, new_preds, error, completer) {
-    var $el, $input, $ul, key, pred, seen, seen_addresses, seen_streets, _i, _len, _ref1, _ref2;
+    var $el, $input, $ul, j, key, len, pred, ref1, ref2, seen, seen_addresses, seen_streets;
     $ul = args.$ul;
     $input = args.$input;
     if (completer == null) {
@@ -769,9 +769,9 @@
     seen = {};
     seen_streets = {};
     seen_addresses = {};
-    for (_i = 0, _len = pred_list.length; _i < _len; _i++) {
-      pred = pred_list[_i];
-      if ((_ref1 = pred.location) != null ? _ref1.street : void 0) {
+    for (j = 0, len = pred_list.length; j < len; j++) {
+      pred = pred_list[j];
+      if ((ref1 = pred.location) != null ? ref1.street : void 0) {
         key = pred.location.street;
         if (seen_streets[key] && !pred.location.number) {
           continue;
@@ -785,13 +785,13 @@
           seen_addresses[key] = true;
         }
       }
-      key = pred.type + "|" + ((_ref2 = pred.location) != null ? _ref2.icon : void 0) + "|" + pred.name;
+      key = pred.type + "|" + ((ref2 = pred.location) != null ? ref2.icon : void 0) + "|" + pred.name;
       if (pred.rendered) {
         seen[key] = true;
         continue;
       }
       if (seen[key]) {
-        console.log("" + key + " already seen");
+        console.log(key + " already seen");
         continue;
       }
       seen[key] = true;

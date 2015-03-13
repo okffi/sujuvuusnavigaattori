@@ -1,9 +1,11 @@
 (function() {
-  var BackControl, DetailsControl, TRANSFORM_MAP, commentMarker, construct_locationfound_event, contextmenu, control_layers, create_tile_layer, create_wait_leg, currentStep, currentStepIndex, decode_polyline, dir_to_finnish, display_detail, display_route_result, display_step, find_route, find_route_offline, find_route_otp, find_route_reittiopas, format_code, format_time, google_colors, google_icons, handle_vehicle_update, hel_servicemap_unit_url, interpolations, interpret_jore, key, lastLeg, layers, location_to_finnish, map, map_under_drag, mapfitBounds, marker_changed, offline_cleanup, onSourceDragEnd, onTargetDragEnd, osm_notes_url, osmnotes, otp_cleanup, path_to_finnish, poi_markers, positionMarker, positionMarker2, position_bounds, position_point, previous_positions, reittiopas_url, render_route_buttons, render_route_layer, reset_map, resize_map, routeLayer, route_to_destination, route_to_service, set_comment_marker, set_source_marker, set_target_marker, simulation_step, simulation_timeoutId, simulation_timestep, simulation_timestep_default, siri_to_live, sourceCircle, sourceMarker, speak, speak_callback, speak_queue, speak_real, step_to_finnish_speech, targetMarker, transform_location, transport_colors, value, vehicles, _ref, _ref1, _ref2;
+  var BackControl, DetailsControl, TRANSFORM_MAP, commentMarker, construct_locationfound_event, contextmenu, control_layers, create_tile_layer, create_wait_leg, currentStep, currentStepIndex, decode_polyline, dir_to_finnish, display_detail, display_route_result, display_step, find_route, find_route_offline, find_route_otp, find_route_reittiopas, format_code, format_time, google_colors, google_icons, handle_vehicle_update, hel_servicemap_unit_url, interpolations, interpret_jore, key, lastLeg, layers, location_to_finnish, map, map_under_drag, mapfitBounds, marker_changed, offline_cleanup, onSourceDragEnd, onTargetDragEnd, osm_notes_url, osmnotes, otp_cleanup, path_to_finnish, poi_markers, positionMarker, positionMarker2, position_bounds, position_point, previous_positions, ref, ref1, ref2, reittiopas_url, render_route_buttons, render_route_layer, reset_map, resize_map, routeLayer, route_to_destination, route_to_service, set_comment_marker, set_source_marker, set_source_or_target_marker, set_target_marker, simulation_step, simulation_timeoutId, simulation_timestep, simulation_timestep_default, siri_to_live, sourceCircle, sourceMarker, speak, speak_callback, speak_queue, speak_real, step_to_finnish_speech, targetMarker, timeout, transform_location, transport_colors, value, vehicles;
 
   map = null;
 
   map_under_drag = false;
+
+  timeout = null;
 
   layers = {};
 
@@ -40,21 +42,21 @@
   };
 
   interpret_jore = function(routeId) {
-    var mode, route, routeType, _ref, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
+    var mode, ref, ref1, ref2, ref3, ref4, ref5, ref6, route, routeType;
     if (citynavi.config.id !== "helsinki") {
-      _ref = ["BUS", 3, routeId], mode = _ref[0], routeType = _ref[1], route = _ref[2];
+      ref = ["BUS", 3, routeId], mode = ref[0], routeType = ref[1], route = ref[2];
     } else if (routeId != null ? routeId.match(/^1019/) : void 0) {
-      _ref1 = ["FERRY", 4, "Ferry"], mode = _ref1[0], routeType = _ref1[1], route = _ref1[2];
+      ref1 = ["FERRY", 4, "Ferry"], mode = ref1[0], routeType = ref1[1], route = ref1[2];
     } else if (routeId != null ? routeId.match(/^1300/) : void 0) {
-      _ref2 = ["SUBWAY", 1, routeId.substring(4, 5)], mode = _ref2[0], routeType = _ref2[1], route = _ref2[2];
+      ref2 = ["SUBWAY", 1, routeId.substring(4, 5)], mode = ref2[0], routeType = ref2[1], route = ref2[2];
     } else if (routeId != null ? routeId.match(/^300/) : void 0) {
-      _ref3 = ["RAIL", 2, routeId.substring(4, 5)], mode = _ref3[0], routeType = _ref3[1], route = _ref3[2];
+      ref3 = ["RAIL", 2, routeId.substring(4, 5)], mode = ref3[0], routeType = ref3[1], route = ref3[2];
     } else if (routeId != null ? routeId.match(/^10(0|10)/) : void 0) {
-      _ref4 = ["TRAM", 0, "" + (parseInt(routeId.substring(2, 4)))], mode = _ref4[0], routeType = _ref4[1], route = _ref4[2];
+      ref4 = ["TRAM", 0, "" + (parseInt(routeId.substring(2, 4)))], mode = ref4[0], routeType = ref4[1], route = ref4[2];
     } else if (routeId != null ? routeId.match(/^(1|2|4).../) : void 0) {
-      _ref5 = ["BUS", 3, "" + (parseInt(routeId.substring(1)))], mode = _ref5[0], routeType = _ref5[1], route = _ref5[2];
+      ref5 = ["BUS", 3, "" + (parseInt(routeId.substring(1)))], mode = ref5[0], routeType = ref5[1], route = ref5[2];
     } else {
-      _ref6 = ["BUS", 3, routeId], mode = _ref6[0], routeType = _ref6[1], route = _ref6[2];
+      ref6 = ["BUS", 3, routeId], mode = ref6[0], routeType = ref6[1], route = ref6[2];
     }
     return [mode, routeType, route];
   };
@@ -167,14 +169,14 @@
     console.log("live map - subscribing to all vehicles");
     routeLayer = L.featureGroup().addTo(map);
     return $.getJSON(citynavi.config.siri_url, function(data) {
-      var sub, vehicle, _i, _len, _ref, _ref1;
-      _ref = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        vehicle = _ref[_i];
+      var j, len, ref, ref1, sub, vehicle;
+      ref = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
+      for (j = 0, len = ref.length; j < len; j++) {
+        vehicle = ref[j];
         handle_vehicle_update(true, siri_to_live(vehicle));
       }
       console.log("Got " + data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity.length + " vehicles in " + citynavi.config.name);
-      sub = (_ref1 = citynavi.realtime) != null ? _ref1.client.subscribe("/location/" + citynavi.config.id + "/**", function(msg) {
+      sub = (ref1 = citynavi.realtime) != null ? ref1.client.subscribe("/location/" + citynavi.config.id + "/**", function(msg) {
         return handle_vehicle_update(false, msg);
       }) : void 0;
       return $('#live-page').on('pagebeforehide', function(e, o) {
@@ -197,7 +199,7 @@
 
   google_icons = citynavi.config.icons.google;
 
-  _ref = citynavi.config, hel_servicemap_unit_url = _ref.hel_servicemap_unit_url, osm_notes_url = _ref.osm_notes_url, reittiopas_url = _ref.reittiopas_url;
+  ref = citynavi.config, hel_servicemap_unit_url = ref.hel_servicemap_unit_url, osm_notes_url = ref.osm_notes_url, reittiopas_url = ref.reittiopas_url;
 
   format_code = function(code) {
     if (code.substring(0, 3) === "300") {
@@ -216,22 +218,22 @@
     return time.replace(/(....)(..)(..)(..)(..)/, "$1-$2-$3 $4:$5");
   };
 
-  decode_polyline = function(encoded, dims) {
+  window.decode_otp_polyline = decode_polyline = function(encoded, dims) {
     var b, dim, i, point, points, result, shift;
     point = (function() {
-      var _i, _results;
-      _results = [];
-      for (i = _i = 0; 0 <= dims ? _i < dims : _i > dims; i = 0 <= dims ? ++_i : --_i) {
-        _results.push(0);
+      var j, ref1, results;
+      results = [];
+      for (i = j = 0, ref1 = dims; 0 <= ref1 ? j < ref1 : j > ref1; i = 0 <= ref1 ? ++j : --j) {
+        results.push(0);
       }
-      return _results;
+      return results;
     })();
     i = 0;
     points = (function() {
-      var _i, _results;
-      _results = [];
+      var j, ref1, results;
+      results = [];
       while (i < encoded.length) {
-        for (dim = _i = 0; 0 <= dims ? _i < dims : _i > dims; dim = 0 <= dims ? ++_i : --_i) {
+        for (dim = j = 0, ref1 = dims; 0 <= ref1 ? j < ref1 : j > ref1; dim = 0 <= ref1 ? ++j : --j) {
           result = 0;
           shift = 0;
           while (true) {
@@ -244,9 +246,9 @@
           }
           point[dim] += result & 1 ? ~(result >> 1) : result >> 1;
         }
-        _results.push(point.slice(0));
+        results.push(point.slice(0));
       }
-      return _results;
+      return results;
     })();
     return points;
   };
@@ -274,10 +276,12 @@
     } else {
       sourceMarker.bindPopup("The starting point for journey<br>(drag the marker to change)");
     }
-    if (options.popup) {
+    if ((options != null ? options.popup : void 0) != null) {
       sourceMarker.openPopup();
     }
-    return marker_changed(options);
+    if (options != null) {
+      return marker_changed(options);
+    }
   };
 
   set_target_marker = function(latlng, options) {
@@ -326,23 +330,23 @@
   poi_markers = [];
 
   route_to_destination = function(target_location) {
-    var lat, lng, marker, poi, target, _fn, _i, _j, _len, _len1, _ref1, _ref2;
+    var fn, j, k, lat, len, len1, lng, marker, poi, ref1, ref2, target;
     console.log("route_to_destination", target_location.name);
-    _ref1 = target_location.coords, lat = _ref1[0], lng = _ref1[1];
+    ref1 = target_location.coords, lat = ref1[0], lng = ref1[1];
     $.mobile.changePage("#map-page");
     target = new L.LatLng(lat, lng);
     set_target_marker(target, {
       description: target_location.name,
       zoomToFit: true
     });
-    for (_i = 0, _len = poi_markers.length; _i < _len; _i++) {
-      marker = poi_markers[_i];
+    for (j = 0, len = poi_markers.length; j < len; j++) {
+      marker = poi_markers[j];
       map.removeLayer(marker);
     }
     poi_markers = [];
     if (citynavi.poi_list) {
-      _ref2 = citynavi.poi_list;
-      _fn = function(poi) {
+      ref2 = citynavi.poi_list;
+      fn = function(poi) {
         var icon, latlng;
         icon = L.AwesomeMarkers.icon({
           svg: poi.category.get_icon_path(),
@@ -362,9 +366,9 @@
         marker.addTo(map);
         return poi_markers.push(marker);
       };
-      for (_j = 0, _len1 = _ref2.length; _j < _len1; _j++) {
-        poi = _ref2[_j];
-        _fn(poi);
+      for (k = 0, len1 = ref2.length; k < len1; k++) {
+        poi = ref2[k];
+        fn(poi);
       }
     }
     return console.log("route_to_destination done");
@@ -395,7 +399,7 @@
       $.mobile.changePage("#map-page");
       target = new L.LatLng(data[0].latitude, data[0].longitude);
       set_target_marker(target, {
-        description: "" + data[0].name_en + "<br>(closest " + srv_id + ")"
+        description: data[0].name_en + "<br>(closest " + srv_id + ")"
       });
       return console.log("palvelukartta callback done");
     });
@@ -425,15 +429,15 @@
   };
 
   offline_cleanup = function(data) {
-    var index, itinerary, leg, new_legs, time, wait_time, _i, _j, _len, _len1, _ref1, _ref10, _ref11, _ref12, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
-    _ref2 = ((_ref1 = data.plan) != null ? _ref1.itineraries : void 0) || [];
-    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-      itinerary = _ref2[_i];
+    var index, itinerary, j, k, leg, len, len1, new_legs, ref1, ref10, ref11, ref12, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, time, wait_time;
+    ref2 = ((ref1 = data.plan) != null ? ref1.itineraries : void 0) || [];
+    for (j = 0, len = ref2.length; j < len; j++) {
+      itinerary = ref2[j];
       new_legs = [];
       time = itinerary.startTime;
-      _ref3 = itinerary.legs;
-      for (index = _j = 0, _len1 = _ref3.length; _j < _len1; index = ++_j) {
-        leg = _ref3[index];
+      ref3 = itinerary.legs;
+      for (index = k = 0, len1 = ref3.length; k < len1; index = ++k) {
+        leg = ref3[index];
         leg.endTime = leg.startTime + leg.duration;
         if (leg.mode === "WALK") {
           leg.from = {
@@ -448,18 +452,18 @@
           };
         }
         if (citynavi.config.id === "helsinki") {
-          if ((_ref4 = leg.routeId) != null ? _ref4.match(/^1019/) : void 0) {
-            _ref5 = ["FERRY", 4], leg.mode = _ref5[0], leg.routeType = _ref5[1];
+          if ((ref4 = leg.routeId) != null ? ref4.match(/^1019/) : void 0) {
+            ref5 = ["FERRY", 4], leg.mode = ref5[0], leg.routeType = ref5[1];
             leg.route = "Ferry";
-          } else if ((_ref6 = leg.routeId) != null ? _ref6.match(/^1300/) : void 0) {
-            _ref7 = ["SUBWAY", 1], leg.mode = _ref7[0], leg.routeType = _ref7[1];
+          } else if ((ref6 = leg.routeId) != null ? ref6.match(/^1300/) : void 0) {
+            ref7 = ["SUBWAY", 1], leg.mode = ref7[0], leg.routeType = ref7[1];
             leg.route = "Metro";
-          } else if ((_ref8 = leg.routeId) != null ? _ref8.match(/^300/) : void 0) {
-            _ref9 = ["RAIL", 2], leg.mode = _ref9[0], leg.routeType = _ref9[1];
-          } else if ((_ref10 = leg.routeId) != null ? _ref10.match(/^10(0|10)/) : void 0) {
-            _ref11 = ["TRAM", 0], leg.mode = _ref11[0], leg.routeType = _ref11[1];
+          } else if ((ref8 = leg.routeId) != null ? ref8.match(/^300/) : void 0) {
+            ref9 = ["RAIL", 2], leg.mode = ref9[0], leg.routeType = ref9[1];
+          } else if ((ref10 = leg.routeId) != null ? ref10.match(/^10(0|10)/) : void 0) {
+            ref11 = ["TRAM", 0], leg.mode = ref11[0], leg.routeType = ref11[1];
           } else if (leg.mode !== "WALK") {
-            _ref12 = ["BUS", 3], leg.mode = _ref12[0], leg.routeType = _ref12[1];
+            ref12 = ["BUS", 3], leg.mode = ref12[0], leg.routeType = ref12[1];
           }
         }
         if (leg.startTime - time > 1000) {
@@ -503,10 +507,10 @@
   };
 
   otp_cleanup = function(data) {
-    var itinerary, last, leg, legs, length, new_legs, time, wait_time, _i, _j, _len, _len1, _ref1, _ref2, _ref3;
-    _ref2 = ((_ref1 = data.plan) != null ? _ref1.itineraries : void 0) || [];
-    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-      itinerary = _ref2[_i];
+    var itinerary, j, k, last, leg, legs, len, len1, length, new_legs, ref1, ref2, ref3, time, wait_time;
+    ref2 = ((ref1 = data.plan) != null ? ref1.itineraries : void 0) || [];
+    for (j = 0, len = ref2.length; j < len; j++) {
+      itinerary = ref2[j];
       legs = itinerary.legs;
       length = legs.length;
       last = length - 1;
@@ -520,9 +524,9 @@
       }
       new_legs = [];
       time = itinerary.startTime;
-      _ref3 = itinerary.legs;
-      for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-        leg = _ref3[_j];
+      ref3 = itinerary.legs;
+      for (k = 0, len1 = ref3.length; k < len1; k++) {
+        leg = ref3[k];
         leg.legGeometry.points = decode_polyline(leg.legGeometry.points, 2);
         if (leg.startTime - time > 1000 && leg.routeType === null) {
           wait_time = leg.startTime - time;
@@ -559,10 +563,10 @@
   };
 
   find_route_otp = function(source, target, callback) {
-    var $modes, mode, params, _i, _len;
+    var $modes, j, len, mode, params;
     params = {
-      toPlace: "" + target.lat + "," + target.lng,
-      fromPlace: "" + source.lat + "," + source.lng,
+      toPlace: target.lat + "," + target.lng,
+      fromPlace: source.lat + "," + source.lng,
       minTransferTime: 180,
       walkSpeed: 1.17,
       maxWalkDistance: 100000,
@@ -576,8 +580,8 @@
       if ($modes.length === 0) {
         $modes = $("#modesettings input");
       }
-      for (_i = 0, _len = $modes.length; _i < _len; _i++) {
-        mode = $modes[_i];
+      for (j = 0, len = $modes.length; j < len; j++) {
+        mode = $modes[j];
         params.mode = $(mode).attr('name') + "," + params.mode;
       }
     }
@@ -600,8 +604,8 @@
   };
 
   display_route_result = function(data) {
-    var $list, i, index, itinerary, maxDuration, polylines, _i, _len, _ref1, _ref2;
-    if ((_ref1 = data.error) != null ? _ref1.msg : void 0) {
+    var $list, i, index, itinerary, j, len, maxDuration, polylines, ref1, ref2;
+    if ((ref1 = data.error) != null ? ref1.msg : void 0) {
       $('#error-popup p').text(data.error.msg);
       $('#error-popup').popup();
       $('#error-popup').popup('open');
@@ -614,18 +618,18 @@
     }
     routeLayer = L.featureGroup().addTo(map);
     maxDuration = _.max((function() {
-      var _i, _len, _ref2, _results;
-      _ref2 = data.plan.itineraries;
-      _results = [];
-      for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-        i = _ref2[_i];
-        _results.push(i.duration);
+      var j, len, ref2, results;
+      ref2 = data.plan.itineraries;
+      results = [];
+      for (j = 0, len = ref2.length; j < len; j++) {
+        i = ref2[j];
+        results.push(i.duration);
       }
-      return _results;
+      return results;
     })());
-    _ref2 = [0, 1, 2];
-    for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
-      index = _ref2[_i];
+    ref2 = [0, 1, 2];
+    for (j = 0, len = ref2.length; j < len; j++) {
+      index = ref2[j];
       $list = $(".route-buttons-" + index);
       $list.empty();
       $list.hide();
@@ -647,7 +651,7 @@
   };
 
   render_route_layer = function(itinerary, routeLayer) {
-    var leg, legs, route_includes_transit, sum, total_walking_distance, total_walking_duration, _i, _len, _results;
+    var j, leg, legs, len, results, route_includes_transit, sum, total_walking_distance, total_walking_duration;
     legs = itinerary.legs;
     vehicles = [];
     previous_positions = [];
@@ -657,54 +661,54 @@
       }), 0);
     };
     total_walking_distance = sum((function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = legs.length; _i < _len; _i++) {
-        leg = legs[_i];
+      var j, len, results;
+      results = [];
+      for (j = 0, len = legs.length; j < len; j++) {
+        leg = legs[j];
         if (leg.distance && (leg.routeType == null)) {
-          _results.push(leg.distance);
+          results.push(leg.distance);
         }
       }
-      return _results;
+      return results;
     })());
     total_walking_duration = sum((function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = legs.length; _i < _len; _i++) {
-        leg = legs[_i];
+      var j, len, results;
+      results = [];
+      for (j = 0, len = legs.length; j < len; j++) {
+        leg = legs[j];
         if (leg.distance && (leg.routeType == null)) {
-          _results.push(leg.duration);
+          results.push(leg.duration);
         }
       }
-      return _results;
+      return results;
     })());
     route_includes_transit = _.any((function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = legs.length; _i < _len; _i++) {
-        leg = legs[_i];
-        _results.push(leg.routeType != null);
+      var j, len, results;
+      results = [];
+      for (j = 0, len = legs.length; j < len; j++) {
+        leg = legs[j];
+        results.push(leg.routeType != null);
       }
-      return _results;
+      return results;
     })());
     $('.control-details').html("<div class='route-details'><div>Itinerary:&nbsp;&nbsp;<i><img src='static/images/clock.svg'> " + Math.ceil(itinerary.duration / 1000 / 60) + "min<\/i>&nbsp;&nbsp;<i><img src='static/images/walking.svg'> " + Math.ceil(total_walking_duration / 1000 / 60) + "min / " + Math.ceil(total_walking_distance / 100) / 10 + "km<\/i></div></div>");
-    _results = [];
-    for (_i = 0, _len = legs.length; _i < _len; _i++) {
-      leg = legs[_i];
-      _results.push((function(leg) {
-        var color, dashArray, icon, label, last_stop, marker, opacity, point, points, polyline, secondsCounter, stop, uid, _ref1, _ref2;
+    results = [];
+    for (j = 0, len = legs.length; j < len; j++) {
+      leg = legs[j];
+      results.push((function(leg) {
+        var color, dashArray, icon, label, last_stop, marker, opacity, point, points, polyline, ref1, ref2, secondsCounter, stop, uid;
         uid = Math.floor(Math.random() * 1000000);
         points = (function() {
-          var _j, _len1, _ref1, _results1;
-          _ref1 = leg.legGeometry.points;
-          _results1 = [];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            point = _ref1[_j];
-            _results1.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
+          var k, len1, ref1, results1;
+          ref1 = leg.legGeometry.points;
+          results1 = [];
+          for (k = 0, len1 = ref1.length; k < len1; k++) {
+            point = ref1[k];
+            results1.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
           }
-          return _results1;
+          return results1;
         })();
-        color = google_colors[(_ref1 = leg.routeType) != null ? _ref1 : leg.mode];
+        color = google_colors[(ref1 = leg.routeType) != null ? ref1 : leg.mode];
         if (leg.transitLeg === true) {
           dashArray = null;
           opacity = 0.4;
@@ -741,9 +745,9 @@
           icon = L.divIcon({
             className: "navigator-div-icon"
           });
-          label = "<span style='font-size: 24px;'><img src='static/images/" + google_icons[(_ref2 = leg.routeType) != null ? _ref2 : leg.mode] + "' style='vertical-align: sub; height: 24px'/><span>" + leg.route + "</span></span>";
-          secondsCounter = function() {
-            var duration, hours, minutes, now, seconds, sign;
+          label = "<span style='font-size: 24px;'><img src='static/images/" + google_icons[(ref2 = leg.routeType) != null ? ref2 : leg.mode] + "' style='vertical-align: sub; height: 24px'/><span>" + leg.route + "</span></span>";
+          secondsCounter = function(leg, polyline) {
+            var duration, eta, hours, minutes, now, remaining_distance, seconds, sign;
             now = citynavi.time();
             if (leg.startTime >= now) {
               duration = moment.duration(leg.startTime - now);
@@ -757,20 +761,37 @@
             hours = duration.hours() + 24 * duration.days();
             if (hours > 0) {
               minutes = (minutes + 100).toString().substring(1);
-              minutes = "" + hours + ":" + minutes;
+              minutes = hours + ":" + minutes;
             }
-            $("#counter" + uid).text("" + sign + minutes + ":" + seconds);
-            return setTimeout(secondsCounter, 1000);
+            if (position_point != null) {
+              remaining_distance = leg.distance * L.GeometryUtil.locateOnLine(map, L.GeometryUtil.reverse(polyline), position_point);
+              eta = new Date(Date.now() + Math.round(remaining_distance / 5 * 1000));
+              eta = moment(eta).format("HH:mm");
+              if (route_includes_transit) {
+                $("#counter" + uid).text("" + sign + minutes + ":" + seconds + " → " + eta);
+              } else {
+                $("#counter" + uid).text("→ " + eta);
+              }
+            }
+            return timeout = setTimeout(((function(_this) {
+              return function() {
+                return secondsCounter(leg, polyline);
+              };
+            })(this)), 1000);
           };
           marker = L.marker(new L.LatLng(point.y, point.x), {
             icon: icon
           }).addTo(routeLayer).bindPopup("<b>Time: " + (moment(leg.startTime).format("HH:mm")) + "&mdash;" + (moment(leg.endTime).format("HH:mm")) + "</b><br /><b>From:</b> " + (stop.name || "") + "<br /><b>To:</b> " + (last_stop.name || ""));
           if ((leg.routeType != null) || leg === legs[0]) {
-            marker.bindLabel(label + ("<span id='counter" + uid + "' class='counter firstleg" + (leg === legs[0]) + " transitroute" + route_includes_transit + "'></span>"), {
+            marker.bindLabel(label + ("<span id='counter" + uid + "' class='counter firstleg" + (leg === legs[0]) + "'></span>"), {
               noHide: true
             }).showLabel();
-            secondsCounter();
           }
+          if (timeout) {
+            window.clearTimeout(timeout);
+            timeout = null;
+          }
+          secondsCounter(leg, polyline);
         }
         if (leg.routeType != null) {
           $.getJSON(citynavi.config.otp_base_url + "transit/variantForTrip", {
@@ -780,14 +801,14 @@
             var geometry, line_layer;
             geometry = data.geometry;
             points = (function() {
-              var _j, _len1, _ref3, _results1;
-              _ref3 = decode_polyline(geometry.points, 2);
-              _results1 = [];
-              for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-                point = _ref3[_j];
-                _results1.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
+              var k, len1, ref3, results1;
+              ref3 = decode_polyline(geometry.points, 2);
+              results1 = [];
+              for (k = 0, len1 = ref3.length; k < len1; k++) {
+                point = ref3[k];
+                results1.push(new L.LatLng(point[0] * 1e-5, point[1] * 1e-5));
               }
-              return _results1;
+              return results1;
             })();
             line_layer = new L.Polyline(points, {
               color: color,
@@ -799,14 +820,14 @@
           $.getJSON(citynavi.config.siri_url, {
             lineRef: leg.routeId
           }, function(data) {
-            var vehicle, _j, _len1, _ref3, _ref4;
-            _ref3 = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
-            for (_j = 0, _len1 = _ref3.length; _j < _len1; _j++) {
-              vehicle = _ref3[_j];
+            var k, len1, ref3, ref4, vehicle;
+            ref3 = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
+            for (k = 0, len1 = ref3.length; k < len1; k++) {
+              vehicle = ref3[k];
               handle_vehicle_update(true, siri_to_live(vehicle));
             }
             console.log("Got " + data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity.length + " vehicles on route " + leg.routeId);
-            return (_ref4 = citynavi.realtime) != null ? _ref4.subscribe_route(leg.routeId, function(msg) {
+            return (ref4 = citynavi.realtime) != null ? ref4.subscribe_route(leg.routeId, function(msg) {
               return handle_vehicle_update(false, msg);
             }) : void 0;
           });
@@ -814,14 +835,14 @@
         return polyline;
       })(leg));
     }
-    return _results;
+    return results;
   };
 
   handle_vehicle_update = function(initial, msg) {
-    var icon, id, interpolation, mode, old_pos, pos, route, routeType, steps, _ref1;
+    var icon, id, interpolation, mode, old_pos, pos, ref1, route, routeType, steps;
     id = msg.vehicle.id;
     pos = [msg.position.latitude, msg.position.longitude];
-    _ref1 = interpret_jore(msg.trip.route), mode = _ref1[0], routeType = _ref1[1], route = _ref1[2];
+    ref1 = interpret_jore(msg.trip.route), mode = ref1[0], routeType = ref1[1], route = ref1[2];
     if (!(id in vehicles)) {
       icon = L.divIcon({
         className: "navigator-div-icon",
@@ -862,7 +883,7 @@
   };
 
   render_route_buttons = function($list, itinerary, route_layer, polylines, max_duration) {
-    var $end, $full_trip, $start, index, leg, length, trip_duration, trip_start, _fn, _i, _len, _ref1;
+    var $end, $full_trip, $start, fn, index, j, leg, len, length, ref1, trip_duration, trip_start;
     trip_duration = itinerary.duration * 1000;
     trip_start = itinerary.startTime;
     length = itinerary.legs.length + 1;
@@ -876,22 +897,22 @@
       return sourceMarker.openPopup();
     });
     $start = $("<li class='leg'><div class='leg-bar'><i><img src='static/images/walking.svg' height='100%' style='visibility: hidden' /></i><div class='leg-indicator' style='font-style: italic; text-align: left'>" + (moment(trip_start).format("HH:mm")) + "</div></div></li>");
-    $start.css("left", "" + 0 + "%");
-    $start.css("width", "" + 15 + "%");
+    $start.css("left", 0. + "%");
+    $start.css("width", 15. + "%");
     $list.append($start);
     $end = $("<li class='leg'><div class='leg-bar'><i><img src='static/images/walking.svg' height='100%' style='visibility: hidden' /></i><div class='leg-indicator' style='font-style: italic; text-align: right'>" + (moment(trip_start + trip_duration).format("HH:mm")) + "</div></div></li>");
-    $end.css("right", "" + 0 + "%");
-    $end.css("width", "" + 15 + "%");
+    $end.css("right", 0. + "%");
+    $end.css("width", 15. + "%");
     $list.append($end);
-    _ref1 = itinerary.legs;
-    _fn = function(index) {
-      var $leg, color, icon_name, leg_duration, leg_label, leg_start, leg_subscript, _ref2, _ref3;
+    ref1 = itinerary.legs;
+    fn = function(index) {
+      var $leg, color, icon_name, leg_duration, leg_label, leg_start, leg_subscript, ref2, ref3;
       if (leg.mode === "WALK" && $('#wheelchair').attr('checked')) {
         icon_name = "wheelchair.svg";
       } else {
-        icon_name = google_icons[(_ref2 = leg.routeType) != null ? _ref2 : leg.mode];
+        icon_name = google_icons[(ref2 = leg.routeType) != null ? ref2 : leg.mode];
       }
-      color = google_colors[(_ref3 = leg.routeType) != null ? _ref3 : leg.mode];
+      color = google_colors[(ref3 = leg.routeType) != null ? ref3 : leg.mode];
       leg_start = (leg.startTime - trip_start) / trip_duration;
       leg_duration = leg.duration * 1000 / trip_duration;
       leg_label = "<img src='static/images/" + icon_name + "' height='100%' />";
@@ -901,8 +922,8 @@
         leg_subscript = "<div class='leg-indicator'>" + leg.route + "</div>";
       }
       $leg = $("<li class='leg'><div style='background: " + color + ";' class='leg-bar'><i>" + leg_label + "</i>" + leg_subscript + "</div></li>");
-      $leg.css("left", "" + (leg_start * 100) + "%");
-      $leg.css("width", "" + (leg_duration * 100) + "%");
+      $leg.css("left", (leg_start * 100) + "%");
+      $leg.css("width", (leg_duration * 100) + "%");
       $leg.click(function(e) {
         if ($list.parent().filter('.active').length > 0) {
           return polylines[index].fire("click");
@@ -922,9 +943,9 @@
       });
       return $list.append($leg);
     };
-    for (index = _i = 0, _len = _ref1.length; _i < _len; index = ++_i) {
-      leg = _ref1[index];
-      _fn(index);
+    for (index = j = 0, len = ref1.length; j < len; index = ++j) {
+      leg = ref1[index];
+      fn(index);
     }
     return $list.show();
   };
@@ -936,11 +957,11 @@
       detail: "full",
       epsg_in: "wgs84",
       epsg_out: "wgs84",
-      from: "" + source.lng + "," + source.lat,
-      to: "" + target.lng + "," + target.lat
+      from: source.lng + "," + source.lat,
+      to: target.lng + "," + target.lat
     };
     return $.getJSON(reittiopas_url, params, function(data) {
-      var leg, legs, route, _fn, _i, _len;
+      var fn, j, leg, legs, len, route;
       window.route_dbg = data;
       if (routeLayer !== null) {
         map.removeLayer(routeLayer);
@@ -952,17 +973,17 @@
       route = L.featureGroup().addTo(map);
       routeLayer = route;
       legs = data[0][0].legs;
-      _fn = function() {
+      fn = function() {
         var color, last_stop, marker, point, points, polyline, stop;
         points = (function() {
-          var _j, _len1, _ref1, _results;
-          _ref1 = leg.shape;
-          _results = [];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            point = _ref1[_j];
-            _results.push(new L.LatLng(point.y, point.x));
+          var k, len1, ref1, results;
+          ref1 = leg.shape;
+          results = [];
+          for (k = 0, len1 = ref1.length; k < len1; k++) {
+            point = ref1[k];
+            results.push(new L.LatLng(point.y, point.x));
           }
-          return _results;
+          return results;
         })();
         color = transport_colors[leg.type];
         polyline = new L.Polyline(points, {
@@ -981,9 +1002,9 @@
           return marker = L.marker(new L.LatLng(point.y, point.x)).addTo(route).bindPopup("<b><Time: " + (format_time(stop.depTime)) + "</b><br /><b>From:</b> {stop.name}<br /><b>To:</b> " + last_stop.name);
         }
       };
-      for (_i = 0, _len = legs.length; _i < _len; _i++) {
-        leg = legs[_i];
-        _fn();
+      for (j = 0, len = legs.length; j < len; j++) {
+        leg = legs[j];
+        fn();
       }
       if (!map.getBounds().contains(route.getBounds())) {
         return mapfitBounds(route.getBounds());
@@ -1026,26 +1047,67 @@
     console.log("zoomend");
     zoom = map.getZoom();
     minzooms = ((function() {
-      var _i, _results;
-      _results = [];
-      for (i = _i = 0; 0 <= zoom ? _i <= zoom : _i >= zoom; i = 0 <= zoom ? ++_i : --_i) {
-        _results.push("minzoom-" + i);
+      var j, ref1, results;
+      results = [];
+      for (i = j = 0, ref1 = zoom; 0 <= ref1 ? j <= ref1 : j >= ref1; i = 0 <= ref1 ? ++j : --j) {
+        results.push("minzoom-" + i);
       }
-      return _results;
+      return results;
     })()).join(" ");
     return $('#map').attr('class', "leaflet-container leaflet-fade-anim " + minzooms);
   });
 
-  $(document).ready(function() {
-    var destination, index, lat, lng, parts, target;
-    if (location.search != null) {
-      if (index = location.search.indexOf("destination=") !== -1) {
-        destination = location.search.substring(index + 12, location.search.length);
-        if (destination.indexOf(',') !== -1) {
-          parts = destination.split(',');
-          lat = parts[0];
-          lng = parts[1];
-          target = new L.LatLng(parseFloat(lat), parseFloat(lng));
+  $(document).on('pageinit', function() {
+    var destination, destname, j, lat, len, lng, mode, param, parts, searchParams, searchString, source, start, target;
+    if ((location.search != null) && location.search.length > 0) {
+      console.log("location.search", location.search);
+      searchString = location.search.substring(1, location.search.length);
+      searchParams = searchString.split("&");
+      source = void 0;
+      target = void 0;
+      mode = void 0;
+      destname = void 0;
+      for (j = 0, len = searchParams.length; j < len; j++) {
+        param = searchParams[j];
+        if (param === "usetransit=yes") {
+          $('input[name=usetransit]').prop('checked', true);
+        } else if (param === "usetransit=no") {
+          $('input[name=usetransit]').prop('checked', false);
+        } else if (param.indexOf("mode=") === 0) {
+          mode = param.substring(5, param.length);
+          console.log("mode", mode);
+          $('input[name=vehiclesettings][value=' + mode + ']').prop('checked', true);
+        } else if (param.indexOf("destname=") === 0) {
+          destname = decodeURIComponent(param.substring(9, param.length));
+        } else if (param.indexOf("start=") === 0) {
+          start = param.substring(6, param.length);
+          console.log("start", start);
+          if (start.indexOf(',') !== -1) {
+            parts = start.split(',');
+            lat = parts[0];
+            lng = parts[1];
+            source = new L.LatLng(parseFloat(lat), parseFloat(lng));
+          }
+        } else if (param.indexOf("destination=") === 0) {
+          destination = param.substring(12, param.length);
+          console.log("destination", destination);
+          if (destination.indexOf(',') !== -1) {
+            parts = destination.split(',');
+            lat = parts[0];
+            lng = parts[1];
+            target = new L.LatLng(parseFloat(lat), parseFloat(lng));
+          }
+        }
+      }
+      if (source != null) {
+        set_source_marker(source);
+      }
+      if (target != null) {
+        if (destname != null) {
+          set_target_marker(target, {
+            description: destname
+          });
+        } else {
           set_target_marker(target);
         }
       }
@@ -1089,9 +1151,9 @@
     return L.tileLayer(map_config.url_template, map_config.opts);
   };
 
-  _ref1 = citynavi.config.maps;
-  for (key in _ref1) {
-    value = _ref1[key];
+  ref1 = citynavi.config.maps;
+  for (key in ref1) {
+    value = ref1[key];
     layers[key] = create_tile_layer(value);
   }
 
@@ -1101,13 +1163,13 @@
 
   control_layers = {};
 
-  _ref2 = citynavi.config.maps;
-  for (key in _ref2) {
-    value = _ref2[key];
+  ref2 = citynavi.config.maps;
+  for (key in ref2) {
+    value = ref2[key];
     control_layers[value.name] = layers[key];
   }
 
-  L.control.layers(control_layers, {
+  window.layers_control = L.control.layers(control_layers, {
     "View map errors": osmnotes
   }).addTo(map);
 
@@ -1141,9 +1203,9 @@
   TRANSFORM_MAP = [];
 
   transform_location = function(point) {
-    var current, radius, src_pnt, t, _i, _len;
-    for (_i = 0, _len = TRANSFORM_MAP.length; _i < _len; _i++) {
-      t = TRANSFORM_MAP[_i];
+    var current, j, len, radius, src_pnt, t;
+    for (j = 0, len = TRANSFORM_MAP.length; j < len; j++) {
+      t = TRANSFORM_MAP[j];
       src_pnt = new L.LatLng(t.source.lat, t.source.lng);
       current = new L.LatLng(point.lat, point.lng);
       radius = 100;
@@ -1170,14 +1232,14 @@
   });
 
   map.on('locationfound', function(e) {
-    var bbox_ne, bbox_sw, measure, point, popup, radius, zoom, _ref3, _ref4;
+    var bbox_ne, bbox_sw, measure, point, popup, radius, ref3, ref4, zoom;
     radius = e.accuracy;
     measure = e.accuracy < 2000 ? "within " + (Math.round(e.accuracy)) + " meters" : "within " + (Math.round(e.accuracy / 1000)) + " km";
     point = e.latlng;
     transform_location(point);
     bbox_sw = citynavi.config.bbox_sw;
     bbox_ne = citynavi.config.bbox_ne;
-    if (!((bbox_sw[0] < (_ref3 = point.lat) && _ref3 < bbox_ne[0])) || !((bbox_sw[1] < (_ref4 = point.lng) && _ref4 < bbox_ne[1]))) {
+    if (!((bbox_sw[0] < (ref3 = point.lat) && ref3 < bbox_ne[0])) || !((bbox_sw[1] < (ref4 = point.lng) && ref4 < bbox_ne[1]))) {
       if (sourceMarker !== null) {
         if (positionMarker !== null) {
           map.removeLayer(positionMarker);
@@ -1252,7 +1314,7 @@
     });
   });
 
-  map.on('click', function(e) {
+  set_source_or_target_marker = function(e) {
     if ((sourceMarker != null) && (targetMarker != null)) {
       return;
     }
@@ -1263,7 +1325,11 @@
     } else if (targetMarker === null) {
       return set_target_marker(e.latlng);
     }
-  });
+  };
+
+  map.on('click', set_source_or_target_marker);
+
+  citynavi.set_source_or_target_marker = set_source_or_target_marker;
 
   contextmenu = L.popup().setContent('<a href="#" onclick="return setMapSource()">Set source</a> | <a href="#" onclick="return setMapTarget()">Set target</a> | <a href="#" onclick="return setNoteLocation()">Report map error</a>');
 
@@ -1373,13 +1439,13 @@
   });
 
   $('.journey-preview-link').on('click', function(e) {
-    var itinerary, route_id, vehicle, _i, _len, _ref3;
+    var itinerary, j, len, ref3, route_id, vehicle;
     itinerary = citynavi.get_itinerary();
-    for (route_id in ((_ref3 = citynavi.realtime) != null ? _ref3.subs : void 0) || []) {
+    for (route_id in ((ref3 = citynavi.realtime) != null ? ref3.subs : void 0) || []) {
       citynavi.realtime.unsubscribe_route(route_id);
     }
-    for (_i = 0, _len = vehicles.length; _i < _len; _i++) {
-      vehicle = vehicles[_i];
+    for (j = 0, len = vehicles.length; j < len; j++) {
+      vehicle = vehicles[j];
       routeLayer.removeLayer(vehicle);
     }
     vehicles = [];
@@ -1525,21 +1591,21 @@
     });
     return marker = L.marker(new L.LatLng(step.lat, step.lon), {
       icon: icon
-    }).addTo(routeLayer).bindLabel("" + (((step.relativeDirection && step.relativeDirection !== "DEPART") || step.absoluteDirection).toLowerCase().replace('_', ' ')) + " on " + (step.streetName || 'unnamed path'), {
+    }).addTo(routeLayer).bindLabel((((step.relativeDirection && step.relativeDirection !== "DEPART") || step.absoluteDirection).toLowerCase().replace('_', ' ')) + " on " + (step.streetName || 'unnamed path'), {
       noHide: true
     }).showLabel();
   };
 
   simulation_step = function(itinerary, time) {
-    var accuracy, geometry, l, latLng, leg, legIndex, nextLeg, p, predecessor, share, step, _i, _len, _ref10, _ref11, _ref12, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
+    var accuracy, geometry, j, l, latLng, leg, legIndex, len, nextLeg, p, predecessor, ref10, ref11, ref12, ref3, ref4, ref5, ref6, ref7, ref8, ref9, share, step;
     simulation_timeoutId = setTimeout((function() {
       return simulation_step(itinerary, time + simulation_timestep);
     }), 1000);
     citynavi.set_simulation_time(moment(time));
     leg = null;
-    _ref3 = itinerary.legs;
-    for (_i = 0, _len = _ref3.length; _i < _len; _i++) {
-      l = _ref3[_i];
+    ref3 = itinerary.legs;
+    for (j = 0, len = ref3.length; j < len; j++) {
+      l = ref3[j];
       if ((l.startTime <= time && time < l.endTime)) {
         leg = l;
       }
@@ -1568,46 +1634,46 @@
     if (lastLeg == null) {
       display_detail("Instructions start at " + itinerary.legs[0].from.name + ".");
       speak("Ohjeet alkavat kadulta " + location_to_finnish(itinerary.legs[0].from));
-      if ((_ref4 = itinerary.legs[0].steps) != null ? _ref4[0] : void 0) {
-        currentStep = (_ref5 = itinerary.legs[0].steps) != null ? _ref5[0] : void 0;
+      if ((ref4 = itinerary.legs[0].steps) != null ? ref4[0] : void 0) {
+        currentStep = (ref5 = itinerary.legs[0].steps) != null ? ref5[0] : void 0;
         currentStepIndex = 0;
         display_step(currentStep);
         console.log("current step", currentStep);
       }
     }
-    if (leg !== lastLeg && (leg != null ? (_ref6 = leg.steps) != null ? _ref6[0] : void 0 : void 0)) {
+    if (leg !== lastLeg && (leg != null ? (ref6 = leg.steps) != null ? ref6[0] : void 0 : void 0)) {
       currentStep = leg.steps[0];
       currentStepIndex = 0;
     }
     lastLeg = leg;
     legIndex = itinerary.legs.indexOf(leg) + 1;
     geometry = (function() {
-      var _j, _len1, _ref7, _results;
-      _ref7 = leg.legGeometry.points;
-      _results = [];
-      for (_j = 0, _len1 = _ref7.length; _j < _len1; _j++) {
-        p = _ref7[_j];
-        _results.push([p[0] * 1e-5, p[1] * 1e-5]);
+      var k, len1, ref7, results;
+      ref7 = leg.legGeometry.points;
+      results = [];
+      for (k = 0, len1 = ref7.length; k < len1; k++) {
+        p = ref7[k];
+        results.push([p[0] * 1e-5, p[1] * 1e-5]);
       }
-      return _results;
+      return results;
     })();
     share = (time - leg.startTime) / (leg.endTime - leg.startTime);
     if (geometry.length > 1 && share !== 0) {
-      _ref7 = L.GeometryUtil.interpolateOnLine(map, geometry, share), latLng = _ref7.latLng, predecessor = _ref7.predecessor;
+      ref7 = L.GeometryUtil.interpolateOnLine(map, geometry, share), latLng = ref7.latLng, predecessor = ref7.predecessor;
     } else {
-      _ref8 = [L.latLng(geometry[0]), -1], latLng = _ref8[0], predecessor = _ref8[1];
+      ref8 = [L.latLng(geometry[0]), -1], latLng = ref8[0], predecessor = ref8[1];
     }
     if ((currentStep != null) && latLng.distanceTo(new L.LatLng(currentStep.lat, currentStep.lon)) < 5) {
       step = currentStep;
       display_detail("Next, go " + (((step.relativeDirection && step.relativeDirection !== "DEPART") || step.absoluteDirection).toLowerCase().replace('_', ' ')) + " on " + (step.streetName || 'unnamed path') + ".");
       speak(step_to_finnish_speech(step));
       currentStepIndex = currentStepIndex + 1;
-      currentStep = (_ref9 = leg.steps) != null ? _ref9[currentStepIndex] : void 0;
+      currentStep = (ref9 = leg.steps) != null ? ref9[currentStepIndex] : void 0;
       if (currentStep == null) {
-        nextLeg = (_ref10 = itinerary.legs) != null ? _ref10[legIndex + 1] : void 0;
+        nextLeg = (ref10 = itinerary.legs) != null ? ref10[legIndex + 1] : void 0;
         console.log("nextLeg", nextLeg);
-        if (nextLeg != null ? (_ref11 = nextLeg.steps) != null ? _ref11[0] : void 0 : void 0) {
-          currentStep = nextLeg != null ? (_ref12 = nextLeg.steps) != null ? _ref12[0] : void 0 : void 0;
+        if (nextLeg != null ? (ref11 = nextLeg.steps) != null ? ref11[0] : void 0 : void 0) {
+          currentStep = nextLeg != null ? (ref12 = nextLeg.steps) != null ? ref12[0] : void 0 : void 0;
           currentStepIndex = 0;
         } else {
           currentStep = null;

@@ -2,13 +2,13 @@
   var defaults, hel_geocoder_base_url, hel_servicemap_base_url, helsinki, hsl_colors, recorder_base_url;
 
   citynavi.update_configs = function(configs) {
-    var config, key, _ref;
+    var config, key, ref;
     citynavi.configs || (citynavi.configs = {});
     for (key in configs) {
       config = configs[key];
       citynavi.configs[key] = _.extend(citynavi.configs[key] || {}, config);
     }
-    if ((_ref = citynavi.config) != null ? _ref.id : void 0) {
+    if ((ref = citynavi.config) != null ? ref.id : void 0) {
       return citynavi.set_config(citynavi.config.id);
     }
   };
@@ -62,8 +62,10 @@
     recorder_login_url: recorder_base_url + "auth/login",
     recorder_get_trace_url: recorder_base_url + "get_trace",
     recorder_get_route_url: recorder_base_url + "get_route",
-    recorder_get_fluency_url: 'http://10.211.55.25:8080/' + "get_fluency",
+    recorder_get_plan_url: recorder_base_url + "get_plan",
+    recorder_get_fluency_url: recorder_base_url + "get_fluency",
     recorder_get_traces_url: recorder_base_url + "get_traces",
+    recorder_get_route_fluency_url: recorder_base_url + "route_fluency",
     recorder_post_route_url: recorder_base_url + "store_data",
     recorder_post_plan_url: recorder_base_url + "store_plan",
     recorder_post_trace_seq_url: recorder_base_url + "trace_seqs",
@@ -98,11 +100,19 @@
         109: 'train_station2.svg'
       }
     },
-    defaultmap: "osm",
+    defaultmap: "stamen",
     maps: {
+      stamen: {
+        name: "Stamen",
+        url_template: 'http://{s}.tile.stamen.com/toner/{z}/{x}/{y}.png',
+        opts: {
+          maxZoom: 20,
+          attribution: 'Map tiles by <a href="http://stamen.com/">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>. Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>.'
+        }
+      },
       osm: {
         name: "OpenStreetMap",
-        url_template: 'http://{s}.www.toolserver.org/tiles/bw-mapnik/{z}/{x}/{y}.png',
+        url_template: 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
         opts: {
           maxZoom: 19,
           attribution: 'Map data &copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap contributors</a>'
