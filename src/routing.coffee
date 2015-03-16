@@ -632,7 +632,7 @@ render_route_layer = (itinerary, routeLayer) ->
                 # that has uid specific to this leg once per second by calling this function
                 # again. Uid has been calculated randomly above in the beginning of the for loop.
 
-                secondsCounter = (leg, polyline) ->
+                seconds_counter = (leg, polyline) ->
                     now = citynavi.time()
                     if leg.startTime >= now
                         duration = moment.duration(leg.startTime-now)
@@ -656,7 +656,7 @@ render_route_layer = (itinerary, routeLayer) ->
                             $("#counter#{uid}").text "→ #{eta}"
                     else if route_includes_transit
                         $("#counter#{uid}").text "#{sign}#{minutes}:#{seconds}"
-                    timeout = setTimeout((=> secondsCounter(leg, polyline)), 1000)
+                    timeout = setTimeout((=> seconds_counter(leg, polyline)), 1000)
 
                 marker = L.marker(new L.LatLng(point.y, point.x), {icon: icon}).addTo(routeLayer)
                     .bindPopup("<b>Time: #{moment(leg.startTime).format("HH:mm")}&mdash;#{moment(leg.endTime).format("HH:mm")}</b><br /><b>From:</b> #{stop.name or ""}<br /><b>To:</b> #{last_stop.name or ""}")
@@ -669,7 +669,7 @@ render_route_layer = (itinerary, routeLayer) ->
                 if timeout
                     window.clearTimeout timeout
                     timeout = null
-                secondsCounter leg, polyline # Start updating the time in the marker.
+                seconds_counter leg, polyline # Start updating the time in the marker.
 
             if leg.routeType?
                 # By calling OTP transit/variantForTrip get the whole route for the vehicle,
