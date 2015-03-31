@@ -22,6 +22,7 @@ static/js
 !static/js/leaflet.geometryutil.js
 !static/js/leaflet.js
 !static/js/leaflet.label.js
+!static/js/maas.js
 !static/js/moment*.js
 !static/js/underscore*.js
 !static/js/images
