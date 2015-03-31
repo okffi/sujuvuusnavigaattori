@@ -1,5 +1,17 @@
 ## module state variables
 
+{maas_server_url} = citynavi.config
+speed_by_upper_limit = citynavi.config.colors.speed_by_upper_limit
+
+# Make the dependency explicit so it's easier to add proper dependency
+# management later.
+maas = window.maas
+
+# For communicating with maas-server.
+connector = maas.createConnector(maas_server_url)
+journey_id = null
+route_timestamp = null
+
 # map
 map = null
 map_under_drag = false # drag state
@@ -301,6 +313,8 @@ onTargetDragEnd = (event) ->
 # When both markers have been placed, find the route between them
 # and zoom out if necessary to fit the route on the screen.
 marker_changed = (options) ->
+    # FIXME: Add ways to change journey_id.
+    journey_id = maas.createJourneyId()
     if sourceMarker? and targetMarker?
         find_route sourceMarker.getLatLng(), targetMarker.getLatLng(), (route) ->
             if options?.zoomToFit
@@ -432,6 +446,7 @@ offline_cleanup = (data) ->
 find_route_offline = (source, target, callback) ->
     $.mobile.loading('show');
     window.citynavi.reach.find source, target, (itinerary) ->
+        route_timestamp = new Date()
         $.mobile.loading('hide')
 
         if itinerary
@@ -535,6 +550,7 @@ find_route_otp = (source, target, callback) ->
     # # http://opentripplanner.org/apidoc/0.9.2/resource_Planner.html
     $.getJSON citynavi.config.otp_base_url + "plan", params, (data) ->
         console.log "opentripplanner callback got data"
+        route_timestamp = new Date()
         data = otp_cleanup(data)
         display_route_result(data)
         if callback
@@ -579,6 +595,56 @@ display_route_result = (data) ->
 
     resize_map() # adjust map height to match space left by itineraries
 
+show_average_speeds = (err, res) ->
+    if res.ok
+        console.log('show_average_speeds response')
+        console.log(res)
+        featurecollection = res.body
+        L.geoJson(featurecollection, {
+            style: (linestring) ->
+                return {
+                    # FIXME: hardcoded speed value
+                    color: if linestring.properties.speed * 3.6 >= 45 then 'transparent' else 'black'
+                    weight: 9
+                    opacity: 1
+                }
+        }).addTo(routeLayer)
+        L.geoJson(featurecollection, {
+            style: (linestring) ->
+                return {
+                    color: speed_by_upper_limit(linestring.properties.speed)
+                    weight: 7
+                    opacity: 1
+                }
+        }).addTo(routeLayer)
+        # FIXME: Currently renders on top of the rendered route because of network lag.
+        # FIXME: Possibly rewrite route rendering completely.
+    else
+        if err?
+            console.log(err)
+
+query_and_show_average_speeds = (err, res) ->
+    if res.ok
+        console.log('query_and_show_average_speeds response')
+        console.log(res)
+        itinerary_id = res.body
+        connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null,
+                                               show_average_speeds)
+    else
+        if err?
+            console.log(err)
+
+transform_itinerary_to_linestring = (itinerary) ->
+    otp_points = _.flatten(_.pluck(_.pluck(itinerary.legs, 'legGeometry'),
+                                   'points'),
+                           true)
+    coordinates = _.map(otp_points, (p) -> [1e-5 * p[1], 1e-5 * p[0]])
+    return {
+        type: 'LineString'
+        geometry:
+            coordinates: coordinates
+    }
+
 # Renders each leg of the route to the map and also draws icons of real-time vehicle
 # locations to the map if available.
 render_route_layer = (itinerary, routeLayer) ->
@@ -596,6 +662,11 @@ render_route_layer = (itinerary, routeLayer) ->
 
     # coffeescript parser would fail with string interpolation syntax here:
     $('.control-details').html("<div class='route-details'><div>Itinerary:&nbsp;&nbsp;<i><img src='static/images/clock.svg'> "+Math.ceil(itinerary.duration/1000/60)+"min<\/i>&nbsp;&nbsp;<i><img src='static/images/walking.svg'> "+Math.ceil(total_walking_duration/1000/60)+"min / "+Math.ceil(total_walking_distance/100)/10+"km<\/i></div></div>")
+
+    # Send the itinerary and display average speeds.
+    itinerary_linestring = transform_itinerary_to_linestring(itinerary)
+    connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
+                            query_and_show_average_speeds)
 
     for leg in legs
         do (leg) ->

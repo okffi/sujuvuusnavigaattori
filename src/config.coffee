@@ -55,6 +55,7 @@ hsl_colors =
 
 hel_geocoder_base_url = "http://dev.hel.fi/geocoder/v1/"
 hel_servicemap_base_url = "http://www.hel.fi/palvelukarttaws/rest/v2/"
+# FIXME: Remove when appropriate.
 recorder_base_url = "http://maas.okf.fi/"
 
 
@@ -73,6 +74,8 @@ defaults =
     reittiopas_url: "http://tuukka.kapsi.fi/tmp/reittiopas.cgi?callback=?"
     osm_notes_url: "http://api.openstreetmap.org/api/0.6/notes.json"
     faye_url: "http://dev.hsl.fi:9002/faye"
+    maas_server_url: "http://otp.okf.fi:8080"
+    # FIXME: Remove when appropriate.
     recorder_login_url: recorder_base_url + "auth/login"
     recorder_get_trace_url: recorder_base_url + "get_trace"
     recorder_get_route_url: recorder_base_url + "get_route"
@@ -103,7 +106,19 @@ defaults =
             3: hsl_colors[5]
             4: hsl_colors[7]
             109: hsl_colors[12]
-
+        speed_by_upper_limit: (speed_meters_per_second) ->
+            km_per_h = speed_meters_per_second * 3.6
+            return switch
+                when km_per_h < 10 then '#c51b7d'
+                when km_per_h < 12 then '#de77ae'
+                when km_per_h < 15 then '#f1b6da'
+                when km_per_h < 20 then '#fde0ef'
+                when km_per_h < 25 then '#e6f5d0'
+                when km_per_h < 30 then '#b8e186'
+                when km_per_h < 35 then '#7fbc41'
+                when km_per_h < 45 then '#4d9221'
+                when km_per_h < 70 then 'transparent'
+                else 'transparent'
     icons:
         google:
             WALK: 'walking.svg'
