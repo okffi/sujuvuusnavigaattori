@@ -569,6 +569,7 @@ display_route_result = (data) ->
 
     maxDuration = _.max(i.duration for i in data.plan.itineraries)
 
+    render_promises = []
     for index in [0, 1, 2]
         $list = $(".route-buttons-#{index}")
         $list.empty()
@@ -581,59 +582,48 @@ display_route_result = (data) ->
                 #polylines = render_route_layer(itinerary, routeLayer)
                 #$list.parent().addClass("active")
                 #citynavi.set_itinerary itinerary
-                render_route_layer(itinerary, routeLayer, () ->
-                    $list.parent().addClass("active")
-                    citynavi.set_itinerary(itinerary)
-                    $list.css('width', itinerary.duration/maxDuration*100+"%")
-                )
+                render_promise = render_route_layer(itinerary, routeLayer)
+                render_promises.push(render_promise)
+                render_promise
+                    .then((polylines) ->
+                        $list.parent().addClass("active")
+                        citynavi.set_itinerary(itinerary)
+                        $list.css('width', itinerary.duration/maxDuration*100+"%")
+                    )
             #else
             #    polylines = null
             #$list.css('width', itinerary.duration/maxDuration*100+"%")
             #render_route_buttons($list, itinerary, routeLayer, polylines, maxDuration)
 
-    resize_map() # adjust map height to match space left by itineraries
+    Promise.all(render_promises)
+       .then((res) -> resize_map())
+    #resize_map() # adjust map height to match space left by itineraries
 
-show_average_speeds = (err, res, itinerary, routeLayer, callback) ->
-    if res.ok
-        console.log('show_average_speeds response')
-        console.log(res)
-        featurecollection = res.body
-        L.geoJson(featurecollection, {
-            style: (linestring) ->
-                return {
-                    # FIXME: hardcoded speed value
-                    color: if linestring.properties.speed * 3.6 >= 45 then 'transparent' else 'black'
-                    weight: 9
-                    opacity: 1
-                }
-        }).addTo(routeLayer)
-        L.geoJson(featurecollection, {
-            style: (linestring) ->
-                return {
-                    color: speed_by_upper_limit(linestring.properties.speed)
-                    weight: 7
-                    opacity: 1
-                }
-        }).addTo(routeLayer)
+show_average_speeds = (res) ->
+    featurecollection = res
+    L.geoJson(featurecollection, {
+        style: (linestring) ->
+            return {
+                # FIXME: hardcoded speed value
+                color: if linestring.properties.speed * 3.6 >= 45 then 'transparent' else 'black'
+                weight: 9
+                opacity: 1
+            }
+    }).addTo(routeLayer)
+    L.geoJson(featurecollection, {
+        style: (linestring) ->
+            return {
+                color: speed_by_upper_limit(linestring.properties.speed)
+                weight: 7
+                opacity: 1
+            }
+    }).addTo(routeLayer)
+    routeLayer
 
-        render_route_layer_per_leg(itinerary, routeLayer)
-        callback()
-    else
-        if err?
-            console.log(err)
-
-query_and_show_average_speeds = (err, res, itinerary, routeLayer, callback) ->
-    cb = _.partial(show_average_speeds, _, _, itinerary, routeLayer, callback)
-    if res.ok
-        console.log('query_and_show_average_speeds response')
-        console.log(res)
-        itinerary_id = res.body
-        connector = citynavi.get_connector()
-        connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null,
-                                               cb)
-    else
-        if err?
-            console.log(err)
+query_average_speeds = (res) ->
+    itinerary_id = res
+    connector = citynavi.get_connector()
+    connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null)
 
 transform_itinerary_to_linestring = (itinerary) ->
     otp_points = _.flatten(_.pluck(_.pluck(itinerary.legs, 'legGeometry'),
@@ -773,12 +763,14 @@ render_route_layer = (itinerary, routeLayer, callback) ->
     # Send the itinerary and display average speeds.
     itinerary_linestring = transform_itinerary_to_linestring(itinerary)
     connector = citynavi.get_connector()
-    #connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
-    #                        query_and_show_average_speeds)
-    cb = _.partial(query_and_show_average_speeds, _, _, itinerary, routeLayer,
-                   callback)
-    connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
-                            cb)
+    average_speed_promise = connector
+        .sendItinerary(journey_id, itinerary_linestring, route_timestamp)
+        .then(query_average_speeds)
+        .then(show_average_speeds)
+        .catch(console.log)
+
+    Promise.all([average_speed_promise])
+        .then((res) -> render_route_layer_per_leg(itinerary, routeLayer))
 
 handle_vehicle_update = (initial, msg) ->
                     id = msg.vehicle.id
