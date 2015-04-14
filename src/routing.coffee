@@ -1,14 +1,7 @@
 ## module state variables
 
-{maas_server_url} = citynavi.config
 speed_by_upper_limit = citynavi.config.colors.speed_by_upper_limit
 
-# Make the dependency explicit so it's easier to add proper dependency
-# management later.
-maas = window.maas
-
-# For communicating with maas-server.
-connector = maas.createConnector(maas_server_url)
 journey_id = null
 route_timestamp = null
 
@@ -314,7 +307,7 @@ onTargetDragEnd = (event) ->
 # and zoom out if necessary to fit the route on the screen.
 marker_changed = (options) ->
     # FIXME: Add ways to change journey_id.
-    journey_id = maas.createJourneyId()
+    journey_id = citynavi.get_journey_id()
     if sourceMarker? and targetMarker?
         find_route sourceMarker.getLatLng(), targetMarker.getLatLng(), (route) ->
             if options?.zoomToFit
@@ -628,6 +621,7 @@ query_and_show_average_speeds = (err, res) ->
         console.log('query_and_show_average_speeds response')
         console.log(res)
         itinerary_id = res.body
+        connector = citynavi.get_connector()
         connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null,
                                                show_average_speeds)
     else
@@ -644,6 +638,8 @@ transform_itinerary_to_linestring = (itinerary) ->
         geometry:
             coordinates: coordinates
     }
+# Export the function.
+window.citynavi.transform_itinerary_to_linestring = transform_itinerary_to_linestring
 
 # Renders each leg of the route to the map and also draws icons of real-time vehicle
 # locations to the map if available.
