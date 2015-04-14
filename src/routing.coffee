@@ -578,17 +578,22 @@ display_route_result = (data) ->
             itinerary = data.plan.itineraries[index]
             # Render the route both on the map and on the footer.
             if index == 0
-                polylines = render_route_layer(itinerary, routeLayer)
-                $list.parent().addClass("active")
-                citynavi.set_itinerary itinerary
-            else
-                polylines = null
-            $list.css('width', itinerary.duration/maxDuration*100+"%")
-            render_route_buttons($list, itinerary, routeLayer, polylines, maxDuration)
+                #polylines = render_route_layer(itinerary, routeLayer)
+                #$list.parent().addClass("active")
+                #citynavi.set_itinerary itinerary
+                render_route_layer(itinerary, routeLayer, () ->
+                    $list.parent().addClass("active")
+                    citynavi.set_itinerary(itinerary)
+                    $list.css('width', itinerary.duration/maxDuration*100+"%")
+                )
+            #else
+            #    polylines = null
+            #$list.css('width', itinerary.duration/maxDuration*100+"%")
+            #render_route_buttons($list, itinerary, routeLayer, polylines, maxDuration)
 
     resize_map() # adjust map height to match space left by itineraries
 
-show_average_speeds = (err, res) ->
+show_average_speeds = (err, res, itinerary, routeLayer, callback) ->
     if res.ok
         console.log('show_average_speeds response')
         console.log(res)
@@ -610,20 +615,22 @@ show_average_speeds = (err, res) ->
                     opacity: 1
                 }
         }).addTo(routeLayer)
-        # FIXME: Currently renders on top of the rendered route because of network lag.
-        # FIXME: Possibly rewrite route rendering completely.
+
+        render_route_layer_per_leg(itinerary, routeLayer)
+        callback()
     else
         if err?
             console.log(err)
 
-query_and_show_average_speeds = (err, res) ->
+query_and_show_average_speeds = (err, res, itinerary, routeLayer, callback) ->
+    cb = _.partial(show_average_speeds, _, _, itinerary, routeLayer, callback)
     if res.ok
         console.log('query_and_show_average_speeds response')
         console.log(res)
         itinerary_id = res.body
         connector = citynavi.get_connector()
         connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null,
-                                               show_average_speeds)
+                                               cb)
     else
         if err?
             console.log(err)
@@ -641,29 +648,9 @@ transform_itinerary_to_linestring = (itinerary) ->
 # Export the function.
 window.citynavi.transform_itinerary_to_linestring = transform_itinerary_to_linestring
 
-# Renders each leg of the route to the map and also draws icons of real-time vehicle
-# locations to the map if available.
-render_route_layer = (itinerary, routeLayer) ->
-
+render_route_layer_per_leg = (itinerary, routeLayer) ->
     legs = itinerary.legs
-
-    vehicles = []
-    previous_positions = []
-
-    sum = (xs) -> _.reduce(xs, ((x, y) -> x+y), 0)
-    total_walking_distance = sum(leg.distance for leg in legs when leg.distance and not leg.routeType?)
-    total_walking_duration = sum(leg.duration for leg in legs when leg.distance and not leg.routeType?)
-
     route_includes_transit = _.any(leg.routeType? for leg in legs)
-
-    # coffeescript parser would fail with string interpolation syntax here:
-    $('.control-details').html("<div class='route-details'><div>Itinerary:&nbsp;&nbsp;<i><img src='static/images/clock.svg'> "+Math.ceil(itinerary.duration/1000/60)+"min<\/i>&nbsp;&nbsp;<i><img src='static/images/walking.svg'> "+Math.ceil(total_walking_duration/1000/60)+"min / "+Math.ceil(total_walking_distance/100)/10+"km<\/i></div></div>")
-
-    # Send the itinerary and display average speeds.
-    itinerary_linestring = transform_itinerary_to_linestring(itinerary)
-    connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
-                            query_and_show_average_speeds)
-
     for leg in legs
         do (leg) ->
             uid = Math.floor(Math.random()*1000000)
@@ -768,6 +755,30 @@ render_route_layer = (itinerary, routeLayer) ->
             # polyline is graphical representation of the leg.
             polyline
 
+# Renders each leg of the route to the map and also draws icons of real-time vehicle
+# locations to the map if available.
+render_route_layer = (itinerary, routeLayer, callback) ->
+    legs = itinerary.legs
+
+    vehicles = []
+    previous_positions = []
+
+    sum = (xs) -> _.reduce(xs, ((x, y) -> x+y), 0)
+    total_walking_distance = sum(leg.distance for leg in legs when leg.distance and not leg.routeType?)
+    total_walking_duration = sum(leg.duration for leg in legs when leg.distance and not leg.routeType?)
+
+    # coffeescript parser would fail with string interpolation syntax here:
+    $('.control-details').html("<div class='route-details'><div>Itinerary:&nbsp;&nbsp;<i><img src='static/images/clock.svg'> "+Math.ceil(itinerary.duration/1000/60)+"min<\/i>&nbsp;&nbsp;<i><img src='static/images/walking.svg'> "+Math.ceil(total_walking_duration/1000/60)+"min / "+Math.ceil(total_walking_distance/100)/10+"km<\/i></div></div>")
+
+    # Send the itinerary and display average speeds.
+    itinerary_linestring = transform_itinerary_to_linestring(itinerary)
+    connector = citynavi.get_connector()
+    #connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
+    #                        query_and_show_average_speeds)
+    cb = _.partial(query_and_show_average_speeds, _, _, itinerary, routeLayer,
+                   callback)
+    connector.sendItinerary(journey_id, itinerary_linestring, route_timestamp,
+                            cb)
 
 handle_vehicle_update = (initial, msg) ->
                     id = msg.vehicle.id
