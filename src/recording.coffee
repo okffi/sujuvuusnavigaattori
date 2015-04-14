@@ -152,10 +152,9 @@ get_fixes_by_journey = (fix_storage) ->
 
 send_fixes_for_journey = (fixes, id, list) ->
     if _.has(list, id)
-        connector.sendFixes(id, fixes, (err, res) ->
-            if res.ok
-                purge_for_journey(id, FIX_STORAGE_KEY)
-        )
+        connector.sendFixes(id, fixes)
+            .then((res) -> purge_for_journey(id, FIX_STORAGE_KEY))
+            .catch(console.log)
 
 send_fixes = () ->
     fixes_by_journey = get_fixes_by_journey(fix_storage)
@@ -201,18 +200,19 @@ send_segments_by_journey = (segments, id, list) ->
     if _.has(list, id)
         # FIXME: Hardcoded values. 'averageSpeed' is current default in
         # kulku.js. 'BICYCLE' is the expected mode of transport.
-        connector.sendSegments(id, segments, 'averageSpeed',
-            _.times(_.size(segments), _.constant('BICYCLE')),
-            (err, res) ->
-                if res.ok
-                    # FIXME: Race condition. If we handle an OK response after
-                    # another segment has been stored for the same journey, the
-                    # new segment will be thrown away without sending it.
-                    #
-                    # Suggested fix: Keep score of which segments have been
-                    # sent. Purge only those.
-                    purge_for_journey(id, SEGMENT_STORAGE_KEY)
-        )
+        connector.sendSegments(id, segments,
+            _.times(_.size(segments), _.constant('averageSpeed')),
+            _.times(_.size(segments), _.constant('BICYCLE')))
+            .then((res) ->
+                # FIXME: Race condition. If we handle an OK response after
+                # another segment has been stored for the same journey, the
+                # new segment will be thrown away without sending it.
+                #
+                # Suggested fix: Keep score of which segments have been
+                # sent. Purge only those.
+                purge_for_journey(id, SEGMENT_STORAGE_KEY)
+            )
+            .catch(console.log)
 
 send_segments = () ->
     segments_by_journey = get_segments_by_journey(segment_storage)
