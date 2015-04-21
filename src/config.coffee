@@ -132,9 +132,17 @@ defaults =
             4: 'port.svg'
             109: 'train_station2.svg'
 
-    defaultmap: "toner_lite"
+    defaultmap: "mapbox_dark"
 
     maps:
+        mapbox_dark:
+            name: 'Mapbox Dark'
+            # For HTTPS:
+            #url_template: 'https://api.tiles.mapbox.com/v4/sujuvuusnavigaattori.lo3k9pen/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3VqdXZ1dXNuYXZpZ2FhdHRvcmkiLCJhIjoiMEtMVXh4TSJ9.Hafw6_BxluLP3rUQdwGAVg'
+            url_template: 'http://api.tiles.mapbox.com/v4/sujuvuusnavigaattori.lo3k9pen/{z}/{x}/{y}.png?access_token=pk.eyJ1Ijoic3VqdXZ1dXNuYXZpZ2FhdHRvcmkiLCJhIjoiMEtMVXh4TSJ9.Hafw6_BxluLP3rUQdwGAVg'
+            opts:
+                maxZoom: 20
+                attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Improve this map</a>"
         toner:
             name: "Stamen Toner"
             # For HTTPS:
