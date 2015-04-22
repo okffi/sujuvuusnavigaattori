@@ -64,8 +64,6 @@ get_journey_id = () ->
 # Export for use elsewhere.
 window.citynavi.get_journey_id = get_journey_id
 
-
-
 separate_by_key = (separator_key, value_key, memo, obj) ->
     id = obj[separator_key]
     value = obj[value_key]
@@ -127,6 +125,7 @@ send_fixes_for_journey = (fixes, id, list) ->
             .then((res) -> purge_for_journey(id, FIX_STORAGE_KEY))
             .catch(console.log)
 
+# Send the fixes AND purge the sent fixes from localStorage.
 send_fixes = () ->
     fixes_by_journey = get_fixes_by_journey(fix_storage)
     _.each(fixes_by_journey, send_fixes_for_journey)
@@ -221,6 +220,7 @@ finish_journey = () ->
     journey_id = maas.createJourneyId()
     is_journey_over = kulku.createJourneyWatcher()
     # FIXME: Perhaps do something in the UI? Suggest a new itinerary?
+    # FIXME: What about sending segments?
 
 start_following_itinerary = (otp_itinerary) ->
     itinerary = citynavi.transform_itinerary_to_linestring(otp_itinerary)
@@ -228,15 +228,13 @@ start_following_itinerary = (otp_itinerary) ->
     ## segment_analyst and itinerary watcher and start feeding fresh fixes as
     ## well.
     #fixes = fixes_for_current_journey(journey_id, fix_storage)
+    # FIXME: Hacky approach: Take e.g. 5 or 10 previous fixes.
     segment_analyst = kulku.createSegmentAnalyst(itinerary)
     is_on_itinerary = kulku.createItineraryWatcher(itinerary)
     is_itinerary_given = true
 
 start_recording = () ->
     fix_storage = maas.createSyncStorage('navigator_fixes')
-
-    # FIXME: Remove when debugged
-    window.citynavi.fix_storage = fix_storage
 
     segment_storage = maas.createSyncStorage('navigator_segments')
     journey_id = maas.createJourneyId()
