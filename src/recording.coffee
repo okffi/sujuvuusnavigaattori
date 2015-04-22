@@ -192,8 +192,6 @@ send_segments = () ->
     #if settings.allowsending
     _.each(segments_by_journey, send_segments_by_journey)
 
-
-
 handle_locationevent = (locationevent) ->
     fix = transform_locationevent_to_fix(locationevent)
     store_fix(journey_id, fix)

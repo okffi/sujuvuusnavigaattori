@@ -2,6 +2,12 @@
 
 speed_by_upper_limit = citynavi.config.colors.speed_by_upper_limit
 
+transform_itinerary_to_linestring = window.citynavi.transform_itinerary_to_linestring
+
+## FIXME: Import these here when module dependencies are handled properly.
+#draw_background_speeds = window.citynavi.draw_background_speeds
+#draw_selected_itinerary = window.citynavi.draw_selected_itinerary
+
 journey_id = null
 route_timestamp = null
 
@@ -596,8 +602,7 @@ display_route_result = (data) ->
             #render_route_buttons($list, itinerary, routeLayer, polylines, maxDuration)
 
     Promise.all(render_promises)
-       .then((res) -> resize_map())
-    #resize_map() # adjust map height to match space left by itineraries
+       .then(() -> resize_map()) # adjust map height to match space left by itineraries
 
 show_average_speeds = (res) ->
     featurecollection = res
@@ -625,18 +630,6 @@ query_average_speeds = (res) ->
     connector = citynavi.get_connector()
     connector.getSpeedAveragesForItinerary(itinerary_id, null, null, null)
 
-transform_itinerary_to_linestring = (itinerary) ->
-    otp_points = _.flatten(_.pluck(_.pluck(itinerary.legs, 'legGeometry'),
-                                   'points'),
-                           true)
-    coordinates = _.map(otp_points, (p) -> [1e-5 * p[1], 1e-5 * p[0]])
-    return {
-        type: 'LineString'
-        geometry:
-            coordinates: coordinates
-    }
-# Export the function.
-window.citynavi.transform_itinerary_to_linestring = transform_itinerary_to_linestring
 
 render_route_layer_per_leg = (itinerary, routeLayer) ->
     legs = itinerary.legs
@@ -760,17 +753,23 @@ render_route_layer = (itinerary, routeLayer, callback) ->
     # coffeescript parser would fail with string interpolation syntax here:
     $('.control-details').html("<div class='route-details'><div>Itinerary:&nbsp;&nbsp;<i><img src='static/images/clock.svg'> "+Math.ceil(itinerary.duration/1000/60)+"min<\/i>&nbsp;&nbsp;<i><img src='static/images/walking.svg'> "+Math.ceil(total_walking_duration/1000/60)+"min / "+Math.ceil(total_walking_distance/100)/10+"km<\/i></div></div>")
 
-    # Send the itinerary and display average speeds.
+    # FIXME: Until modules and module dependencies have been introduced, import
+    # here.
+    draw_background_speeds = window.citynavi.draw_background_speeds
+    draw_selected_itinerary = window.citynavi.draw_selected_itinerary
+
     itinerary_linestring = transform_itinerary_to_linestring(itinerary)
     connector = citynavi.get_connector()
+
     average_speed_promise = connector
         .sendItinerary(journey_id, itinerary_linestring, route_timestamp)
         .then(query_average_speeds)
-        .then(show_average_speeds)
+        .then(_.partial(draw_background_speeds, routeLayer))
         .catch(console.log)
 
     Promise.all([average_speed_promise])
-        .then((res) -> render_route_layer_per_leg(itinerary, routeLayer))
+        #.then((res) -> render_route_layer_per_leg(itinerary, routeLayer))
+        .then(() -> draw_selected_itinerary(routeLayer, itinerary_linestring))
 
 handle_vehicle_update = (initial, msg) ->
                     id = msg.vehicle.id
@@ -1233,7 +1232,7 @@ set_source_or_target_marker = (e) ->
 map.on 'click', set_source_or_target_marker
 
 # FIXME: Build a nicer interface sometime.
-citynavi.set_source_or_target_marker = set_source_or_target_marker
+window.citynavi.set_source_or_target_marker = set_source_or_target_marker
 
 # Create context menu that allows user to set source and target location as well as add error notes.
 # The menu is shown when the user keeps finger long time on the touchscreen (see contextmenu event
