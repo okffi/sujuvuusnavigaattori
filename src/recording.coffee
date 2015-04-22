@@ -74,7 +74,7 @@ separate_by_key = (separator_key, value_key, memo, obj) ->
 # FIXME: This could be more efficient by e.g. using a separate localStorage key
 #        for each journey. Or even better, store a dictionary in localStorage.
 # FIXME: Also we do should not touch the same localStorage key that syncStorage
-#        is using. In this case it's probably fine.
+#        is using. In this case I expect it to be fine.
 purge_for_journey = (journey_id, storage_key) ->
     objs = JSON.parse(localStorage[storage_key])
     filtered = _.filter(objs, (obj) -> obj.journey_id != journey_id)
