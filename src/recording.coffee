@@ -25,16 +25,17 @@
 # If the user does not want to send the data, destroy it?
 # Remove functionality to see old mobility data.
 
+# Imports.
+
 {maas_server_url} = citynavi.config
 
-# Make the dependency explicit so it's easier to add proper dependency
-# management later.
 maas = window.maas
 kulku = window.kulku
 
 map = window.map_dbg
 
 transform_locationevent_to_fix = window.citynavi.transform_locationevent_to_fix
+transform_itinerary_to_linestring = window.citynavi.transform_itinerary_to_linestring
 
 
 
@@ -46,8 +47,6 @@ connector = maas.createConnector(maas_server_url)
 
 get_connector = () ->
     connector
-# Export for use elsewhere.
-window.citynavi.get_connector = get_connector
 
 fix_storage = null
 segment_storage = null
@@ -61,8 +60,6 @@ is_on_itinerary = null
 
 get_journey_id = () ->
     journey_id
-# Export for use elsewhere.
-window.citynavi.get_journey_id = get_journey_id
 
 separate_by_key = (separator_key, value_key, memo, obj) ->
     id = obj[separator_key]
@@ -130,15 +127,10 @@ send_fixes = () ->
     fixes_by_journey = get_fixes_by_journey(fix_storage)
     _.each(fixes_by_journey, send_fixes_for_journey)
 
-# FIXME: export for testing, remove after
-window.send_fixes = send_fixes
-
 fixes_for_current_journey = (journey_id, fix_storage) ->
     objs = get_all_fixes(fix_storage)
     _.map(_.filter(objs, (obj) -> obj.journey_id == journey_id),
           _.property('fix'))
-
-
 
 store_segments = (journey_id, segments) ->
     _.each(segments, (segment) ->
@@ -221,7 +213,7 @@ finish_journey = () ->
     # FIXME: What about sending segments?
 
 start_following_itinerary = (otp_itinerary) ->
-    itinerary = citynavi.transform_itinerary_to_linestring(otp_itinerary)
+    itinerary = transform_itinerary_to_linestring(otp_itinerary)
     ## FIXME: Possibly feed some fixes already in fix_storage into
     ## segment_analyst and itinerary watcher and start feeding fresh fixes as
     ## well.
@@ -247,3 +239,7 @@ stop_recording = () ->
 
 # Start recording at init.
 start_recording()
+
+# Exports.
+window.citynavi.get_journey_id = get_journey_id
+window.citynavi.get_connector = get_connector
