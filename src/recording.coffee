@@ -32,6 +32,12 @@
 maas = window.maas
 kulku = window.kulku
 
+map = window.map_dbg
+
+transform_locationevent_to_fix = window.citynavi.transform_locationevent_to_fix
+
+
+
 FIX_STORAGE_KEY = 'navigator_fixes'
 SEGMENT_STORAGE_KEY = 'navigator_segments'
 
@@ -93,41 +99,6 @@ dateify_timestamp = (feature) ->
     copy = deepClone(feature)
     copy.properties.timestamp = new Date(feature.properties.timestamp)
     copy
-
-
-
-transform_locationevent_to_fix = (locationevent) ->
-    latlng = locationevent.latlng
-    coordinates = [latlng.lng, latlng.lat]
-    altitude = locationevent.altitude
-    if altitude?
-        coordinates.push(altitude)
-
-    properties =
-        timestamp: new Date(locationevent.timestamp)
-    speed = locationevent.speed
-    if speed?
-        properties.speed = speed
-    # FIXME: Required by maas-server.
-    else
-        properties.speed = null
-    accuracy = locationevent.accuracy
-    if accuracy?
-        properties.accuracy = accuracy
-    altitude_accuracy = locationevent.altitude_accuracy
-    if altitude_accuracy?
-        # Fixes use camelCase.
-        properties.altitudeAccuracy = altitude_accuracy
-    heading = locationevent.heading
-    if heading?
-        properties.heading = heading
-
-    fix =
-        type: 'Feature'
-        geometry:
-            type: 'Point'
-            coordinates: coordinates
-        properties: properties
 
 store_fix = (journey_id, fix) ->
     storable_fix = stringify_timestamp(fix)
@@ -270,14 +241,13 @@ start_recording = () ->
     segment_storage = maas.createSyncStorage('navigator_segments')
     journey_id = maas.createJourneyId()
     is_journey_over = kulku.createJourneyWatcher()
-    window.map_dbg.on('locationfound', handle_locationevent)
+    map.on('locationfound', handle_locationevent)
 
 stop_recording = () ->
     # FIXME: Should we purge?
     fix_storage.purgeAll()
     segment_storage.purgeAll()
-    # FIXME: Reference to global map
-    window.map_dbg.off('locationfound', handle_locationevent)
+    map.off('locationfound', handle_locationevent)
 
 # Start recording at init.
 start_recording()
