@@ -44,39 +44,7 @@ get_base_fill_width = (zoom_level) ->
     return  9 if zoom_level == 17
     return 14
 
-#create_general_leaflet_object = (zoom, geojson, color, weight, opacity) ->
-#    base_fill_width = get_base_fill_width(zoom)
-#    L.geoJson(geojson,
-#        style: (f) ->
-#            stroke: true
-#            color: color
-#            weight: weight
-#            opacity: opacity
-#            fill: false
-#            lineCap: 'round'
-#    )
-#
-#create_general_style_function = (color, weight, opacity) ->
-#    (f) ->
-#        stroke: true
-#        color: color
-#        weight: weight
-#        opacity: opacity
-#        fill: false
-#        lineCap: 'round'
-
 create_background_outline = (zoom, geojson) ->
-    #base_fill_width = get_base_fill_width(zoom)
-    #create_general_leaflet_object(zoom, geojson, outline_color,
-    #                              base_fill_width + outline_width_addition,
-    #                              default_opacity)
-    #
-    #base_fill_width = get_base_fill_width(zoom)
-    #style = create_general_style_function(
-    #    outline_color, base_fill_width + outline_width_addition,
-    #    default_opacity)
-    #L.geoJson(geojson, { style: style })
-
     base_fill_width = get_base_fill_width(zoom)
     L.geoJson(geojson,
         style: (f) ->
@@ -150,15 +118,8 @@ create_selected_gloss2 = (zoom, geojson) ->
     )
 
 is_components_approx_equal = (c1, c2) ->
-    # FIXME: Comment does not make sense anymore.
-    # OTP results have seven digits of accuracy.
     epsilon = 1e-5
     Math.abs(c1 - c2) < epsilon
-
-# FIXME: Remove if not needed.
-#is_equal_pair = (f, x1, x2) -> f(x1[0], x2[0]) && f(x1[1], x2[1])
-#is_coordinates_equal = _.partial(is_equal_pair, is_components_approx_equal)
-#is_segments_equal = _.partial(is_equal_pair, is_coordinates_equal)
 
 segmentize = (coordinates) ->
     _.zip(_.initial(coordinates), _.rest(coordinates))
