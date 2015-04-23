@@ -18,6 +18,7 @@ static/js
 !static/js/backbone*.js
 !static/js/jquery*.js
 !static/js/handlebars*.js
+!static/js/kulku.js
 !static/js/leaflet-osm-notes.js
 !static/js/leaflet.geometryutil.js
 !static/js/leaflet.js
