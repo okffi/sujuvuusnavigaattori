@@ -21,10 +21,12 @@ selected_unknown_color = '#8e8e8e'
 default_opacity = 1.0
 gloss1_opacity = 0.3
 gloss2_opacity = 0.6
-outline_width_addition = 0.8
+
+background_width_multiplier = 0.8
 selected_width_multiplier = 1.7
 gloss1_width_multiplier = 0.5
 gloss2_width_multiplier = 0.25
+outline_width_addition = 0.8
 selected_outline_width_addition = 3.0
 
 get_speed_color = (speed_in_ms) ->
@@ -54,7 +56,7 @@ create_background_outline = (zoom, geojson) ->
         style: (f) ->
             stroke: true
             color: outline_color
-            weight: base_fill_width + outline_width_addition
+            weight: background_width_multiplier * base_fill_width + outline_width_addition
             opacity: default_opacity
             fill: false
             lineCap: 'round'
@@ -66,7 +68,7 @@ create_background_fill = (zoom, geojson) ->
         style: (f) ->
             stroke: true
             color: get_speed_color(f.properties?.speed)
-            weight: base_fill_width
+            weight: background_width_multiplier * base_fill_width
             opacity: default_opacity
             fill: false
             lineCap: 'round'
