@@ -190,7 +190,7 @@ handle_locationevent = (locationevent) ->
 
     if is_itinerary_given
         if is_on_itinerary(fix)
-            segments = analyse_segments(fix)
+            segments = segment_analyst(fix)
             if segments.length > 0
                 store_segments(journey_id, segments)
                 send_segments()
