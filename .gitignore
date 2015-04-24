@@ -14,7 +14,7 @@ report.html
 sauce_connect.log
 selenium-screenshot-*.png
 src/local_config.coffee
-static/js
+static/js/*
 !static/js/backbone*.js
 !static/js/jquery*.js
 !static/js/handlebars*.js
