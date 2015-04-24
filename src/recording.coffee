@@ -72,7 +72,8 @@ separate_by_key = (separator_key, value_key, memo, obj) ->
     memo
 
 # FIXME: This could be more efficient by e.g. using a separate localStorage key
-#        for each journey. Or even better, store a dictionary in localStorage.
+#        for each journey. Or even better, store an object in localStorage with
+#        journey IDs as keys.
 # FIXME: Also we do should not touch the same localStorage key that syncStorage
 #        is using. In this case I expect it to be fine.
 purge_for_journey = (journey_id, storage_key) ->
@@ -179,7 +180,7 @@ send_segments_by_journey = (segments, id, list) ->
 send_segments = () ->
     segments_by_journey = get_segments_by_journey(segment_storage)
     # FIXME: We do not have that setting at the moment.
-    ## FIXME: Hardcoded source
+    ## FIXME: Hardcoded source for settings
     #settings = localStorage['user_settings']
     #if settings.allowsending
     _.each(segments_by_journey, send_segments_by_journey)
