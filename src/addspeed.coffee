@@ -133,14 +133,21 @@ split_into_linestrings = (segments, speeds) ->
 # @param The itinerary as a GeoJSON LineString.
 # @return The itinerary as a GeoJSON FeatureCollection of LineStrings each
 #     containing a property 'speed'. If no speed information was found for a
-#     LineString, its 'speed' is set to null.
+#     LineString, its 'speed' is set to null. If background_featurecollection
+#     was not given, itinerary_linestring is returned instead with its property
+#     'speed' set to null.
 add_speeds_to_itinerary = (background_featurecollection,
                            itinerary_linestring) ->
-    itinerary_coordinates = itinerary_linestring.geometry.coordinates
-    itinerary_segments = segmentize(itinerary_coordinates)
-    speeds = pick_speeds(background_featurecollection, itinerary_segments)
-    itinerary_featurecollection = split_into_linestrings(itinerary_segments,
-                                                         speeds)
+    if background_featurecollection?
+        itinerary_coordinates = itinerary_linestring.geometry.coordinates
+        itinerary_segments = segmentize(itinerary_coordinates)
+        speeds = pick_speeds(background_featurecollection, itinerary_segments)
+        itinerary_featurecollection = split_into_linestrings(itinerary_segments,
+                                                             speeds)
+    else
+        itinerary_linestring.properties =
+            speed: null
+        itinerary_linestring
 
 
 
