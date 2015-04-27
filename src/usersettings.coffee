@@ -9,10 +9,14 @@ user_settings =
     usewheelchair: false
     preferfree: false
     usespeech: false
+    firsttime: true
+    recordandpublish: false
 
 user_settings_string = localStorage['user_settings']
 if user_settings_string?
-    user_settings = JSON.parse(user_settings_string)
+    # If localStorage did not contain some settings, add them now.
+    user_settings = $.extend(user_settings, JSON.parse(user_settings_string))
+    localStorage['user_settings'] = JSON.stringify(user_settings)
 else
     localStorage['user_settings'] = JSON.stringify(user_settings)
 
@@ -77,7 +81,10 @@ if user_settings.usespeech
     load_me_speak()
 else
     $('#use-speech').prop('checked', false)
-
+if user_settings.recordandpublish
+    $('#permission-checkbox').prop('checked', true)
+else
+    $('#permission-checkbox').prop('checked', false)
 
 $('#vehiclesettings').change () ->
     vehiclemode = $("input:checked[name=vehiclesettings]").val()
@@ -135,6 +142,13 @@ $('#prefer-free').change () ->
     localStorage['user_settings'] = JSON.stringify(user_settings)
     console.log "changed preferfree to", preferfree
 
+$('#permission-checkbox').change () ->
+    recordandpublish = if $('#permission-checkbox').attr('checked') then true else false
+    user_settings = JSON.parse(localStorage['user_settings'])
+    user_settings.recordandpublish = recordandpublish
+    localStorage['user_settings'] = JSON.stringify(user_settings)
+    console.log "changed recordandpublish to", recordandpublish
+
 $('#use-speech').change () ->
     if $('#use-speech').attr('checked')
         load_me_speak()
@@ -146,3 +160,35 @@ $('#use-speech').change () ->
         user_settings.usespeech = false
         localStorage['user_settings'] = JSON.stringify(user_settings)
     console.log "changed usespeech to", user_settings.usespeech
+
+
+
+# Ask the user for permission to record and publish.
+if user_settings.firsttime
+    $('#front-page').on 'pageshow', (e) ->
+        $('#permission-popup').popup('open')
+
+$('#permission-button-no').on 'click', (e) ->
+    user_settings.firsttime = false
+    user_settings.recordandpublish = false
+    localStorage['user_settings'] = JSON.stringify(user_settings)
+    $('#permission-popup').popup('close')
+
+$('#permission-button-yes').on 'click', (e) ->
+    user_settings.firsttime = false
+    user_settings.recordandpublish = true
+    localStorage['user_settings'] = JSON.stringify(user_settings)
+    $('#permission-popup').popup('close')
+
+
+
+get_settings = () ->
+    user_settings
+
+set_settings = (settings) ->
+    user_settings = settings
+    localStorage['user_settings'] = JSON.stringify(user_settings)
+
+# Exports
+window.citynavi.get_settings = get_settings
+window.citynavi.set_settings = set_settings

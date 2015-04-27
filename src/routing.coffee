@@ -4,6 +4,8 @@ speed_by_upper_limit = citynavi.config.colors.speed_by_upper_limit
 
 transform_itinerary_to_linestring = window.citynavi.transform_itinerary_to_linestring
 
+get_settings = window.citynavi.get_settings
+
 ## FIXME: Import these here when module dependencies are handled properly.
 #draw_background_speeds = window.citynavi.draw_background_speeds
 #draw_selected_itinerary = window.citynavi.draw_selected_itinerary
@@ -552,10 +554,12 @@ find_route_otp = (source, target, callback) ->
         route_timestamp = new Date()
         data = otp_cleanup(data)
         display_route_result(data)
-        if callback
-            callback(routeLayer)
-        $.mobile.changePage "#map-page"
-        console.log "opentripplanner callback done"
+            .then(() ->
+                if callback
+                    callback(routeLayer)
+                $.mobile.changePage "#map-page"
+                console.log "opentripplanner callback done"
+            )
 
 display_route_result = (data) ->
     if data.error?.msg
@@ -761,14 +765,15 @@ render_route_layer = (itinerary, routeLayer, callback) ->
     itinerary_linestring = transform_itinerary_to_linestring(itinerary)
     connector = citynavi.get_connector()
 
-    average_speed_promise = connector
-        .sendItinerary(journey_id, itinerary_linestring, route_timestamp)
-        .then(query_average_speeds)
-        .then(_.partial(draw_background_speeds, routeLayer))
-        .catch(console.log)
+    average_speed_promise = new Promise((resolve, reject) -> resolve(true))
+    if get_settings().recordandpublish
+        average_speed_promise = connector
+            .sendItinerary(journey_id, itinerary_linestring, route_timestamp)
+            .then(query_average_speeds)
+            .then(_.partial(draw_background_speeds, routeLayer))
+            .catch(console.log)
 
     Promise.all([average_speed_promise])
-        #.then((res) -> render_route_layer_per_leg(itinerary, routeLayer))
         .then(() -> draw_selected_itinerary(routeLayer, itinerary_linestring))
 
 handle_vehicle_update = (initial, msg) ->
