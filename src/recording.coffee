@@ -37,6 +37,8 @@ map = window.map_dbg
 transform_locationevent_to_fix = window.citynavi.transform_locationevent_to_fix
 transform_itinerary_to_linestring = window.citynavi.transform_itinerary_to_linestring
 
+get_settings = window.citynavi.get_settings
+
 
 
 FIX_STORAGE_KEY = 'navigator_fixes'
@@ -234,13 +236,18 @@ start_recording = () ->
 
 stop_recording = () ->
     # FIXME: Should we purge?
-    fix_storage.purgeAll()
-    segment_storage.purgeAll()
+    if fix_storage?
+        fix_storage.purgeAll()
+    if segment_storage?
+        segment_storage.purgeAll()
     map.off('locationfound', handle_locationevent)
 
-# Start recording at init.
-start_recording()
+if get_settings().recordandpublish
+    # Start recording at init.
+    start_recording()
 
 # Exports.
 window.citynavi.get_journey_id = get_journey_id
 window.citynavi.get_connector = get_connector
+window.citynavi.start_recording = start_recording
+window.citynavi.stop_recording = stop_recording

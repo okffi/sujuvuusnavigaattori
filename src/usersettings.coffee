@@ -149,6 +149,13 @@ $('#permission-checkbox').change () ->
     localStorage['user_settings'] = JSON.stringify(user_settings)
     console.log "changed recordandpublish to", recordandpublish
 
+    if recordandpublish
+        # FIXME: Load order requires that this is not imported at init.
+        window.citynavi.start_recording()
+    else
+        # FIXME: Load order requires that this is not imported at init.
+        window.citynavi.stop_recording()
+
 $('#use-speech').change () ->
     if $('#use-speech').attr('checked')
         load_me_speak()
@@ -173,12 +180,16 @@ $('#permission-button-no').on 'click', (e) ->
     user_settings.recordandpublish = false
     localStorage['user_settings'] = JSON.stringify(user_settings)
     $('#permission-popup').popup('close')
+    # FIXME: Load order requires that this is not imported at init.
+    window.citynavi.stop_recording()
 
 $('#permission-button-yes').on 'click', (e) ->
     user_settings.firsttime = false
     user_settings.recordandpublish = true
     localStorage['user_settings'] = JSON.stringify(user_settings)
     $('#permission-popup').popup('close')
+    # FIXME: Load order requires that this is not imported at init.
+    window.citynavi.start_recording()
 
 
 
