@@ -228,8 +228,12 @@ start_following_itinerary = (otp_itinerary) ->
 
 start_recording = () ->
     fix_storage = maas.createSyncStorage('navigator_fixes')
-
     segment_storage = maas.createSyncStorage('navigator_segments')
+
+    # Send if something was left in localStorage from last time.
+    send_fixes()
+    send_segments()
+
     journey_id = maas.createJourneyId()
     is_journey_over = kulku.createJourneyWatcher()
     map.on('locationfound', handle_locationevent)
