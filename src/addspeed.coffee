@@ -79,16 +79,10 @@ is_speed_approx_equal = (speed_pair) ->
     last = _.last(speed_pair)
     is_first_null = _.isNull(first)
     is_last_null = _.isNull(last)
-    if is_first_null
-        if is_last_null
-            true
-        else
-            false
+    if is_first_null or is_last_null
+        is_first_null == is_last_null
     else
-        if is_last_null
-            false
-        else
-            is_components_approx_equal(first, last)
+        is_components_approx_equal(first, last)
 
 group_by_consecutively_equal_speeds = (segments, speeds) ->
     speed_pairs = segmentize(speeds)
