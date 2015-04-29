@@ -60,6 +60,8 @@ is_itinerary_given = false
 segment_analyst = null
 is_on_itinerary = null
 
+
+
 get_journey_id = () ->
     journey_id
 
@@ -89,13 +91,19 @@ deepClone = (obj) ->
 # Expect an extended GeoJSON object and change properties.timestamp to a string.
 stringify_timestamp = (feature) ->
     copy = deepClone(feature)
-    copy.properties.timestamp = feature.properties.timestamp.toISOString()
+    if feature.timestamp
+        copy.timestamp = feature.timestamp.toISOString()
+    else
+        copy.properties.timestamp = feature.properties.timestamp.toISOString()
     copy
 
 # Expect an extended GeoJSON object and change properties.timestamp to a Date.
 dateify_timestamp = (feature) ->
     copy = deepClone(feature)
-    copy.properties.timestamp = new Date(feature.properties.timestamp)
+    if feature.timestamp
+        copy.timestamp = new Date(feature.timestamp)
+    else
+        copy.properties.timestamp = new Date(feature.properties.timestamp)
     copy
 
 store_fix = (journey_id, fix) ->
@@ -165,19 +173,21 @@ send_segments_by_journey = (segments, id, list) ->
     if _.has(list, id)
         # FIXME: Hardcoded values. 'averageSpeed' is current default in
         # kulku.js. 'BICYCLE' is the expected mode of transport.
-        connector.sendSegments(id, segments,
-            _.times(_.size(segments), _.constant('averageSpeed')),
-            _.times(_.size(segments), _.constant('BICYCLE')))
-            .then((res) ->
-                # FIXME: Race condition. If we handle an OK response after
-                # another segment has been stored for the same journey, the
-                # new segment will be thrown away without sending it.
-                #
-                # Suggested fix: Keep score of which segments have been
-                # sent. Purge only those.
-                purge_for_journey(id, SEGMENT_STORAGE_KEY)
-            )
-            .catch(console.log)
+        segments = _.filter(segments, (s) -> _.isFinite(s.averageSpeed))
+        if not _.isEmpty(segments)
+            connector.sendSegments(id, segments,
+                _.times(_.size(segments), _.constant('averageSpeed')),
+                _.times(_.size(segments), _.constant('BICYCLE')))
+                .then((res) ->
+                    # FIXME: Race condition. If we handle an OK response after
+                    # another segment has been stored for the same journey, the
+                    # new segment will be thrown away without sending it.
+                    #
+                    # Suggested fix: Keep score of which segments have been
+                    # sent. Purge only those.
+                    purge_for_journey(id, SEGMENT_STORAGE_KEY)
+                )
+                .catch(console.log)
 
 send_segments = () ->
     segments_by_journey = get_segments_by_journey(segment_storage)
@@ -255,3 +265,4 @@ window.citynavi.get_journey_id = get_journey_id
 window.citynavi.get_connector = get_connector
 window.citynavi.start_recording = start_recording
 window.citynavi.stop_recording = stop_recording
+window.citynavi.start_following_itinerary = start_following_itinerary

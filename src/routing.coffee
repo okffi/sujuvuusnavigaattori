@@ -592,6 +592,10 @@ display_route_result = (data) ->
                 #polylines = render_route_layer(itinerary, routeLayer)
                 #$list.parent().addClass("active")
                 #citynavi.set_itinerary itinerary
+
+                # FIXME: This should not happen inside a display function but here goes.
+                window.citynavi.start_following_itinerary(itinerary)
+
                 render_promise = render_route_layer(itinerary, routeLayer)
                 render_promises.push(render_promise)
                 render_promise
