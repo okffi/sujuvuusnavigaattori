@@ -176,6 +176,7 @@ if user_settings.firsttime
         $('#permission-popup').popup('open')
 
 $('#permission-button-no').on 'click', (e) ->
+    $('#permission-checkbox').prop('checked', false)
     user_settings.firsttime = false
     user_settings.recordandpublish = false
     localStorage['user_settings'] = JSON.stringify(user_settings)
@@ -184,6 +185,7 @@ $('#permission-button-no').on 'click', (e) ->
     window.citynavi.stop_recording()
 
 $('#permission-button-yes').on 'click', (e) ->
+    $('#permission-checkbox').prop('checked', true)
     user_settings.firsttime = false
     user_settings.recordandpublish = true
     localStorage['user_settings'] = JSON.stringify(user_settings)
