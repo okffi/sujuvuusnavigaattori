@@ -60,6 +60,8 @@ is_itinerary_given = false
 segment_analyst = null
 is_on_itinerary = null
 
+wakelocked = false
+
 
 
 get_journey_id = () ->
@@ -248,6 +250,9 @@ start_recording = () ->
     is_journey_over = kulku.createJourneyWatcher()
     map.on('locationfound', handle_locationevent)
 
+    window.powerManagement?.acquireWakeLock() ->
+        wakelocked = true
+
 stop_recording = () ->
     # FIXME: Should we purge?
     if fix_storage?
@@ -255,6 +260,9 @@ stop_recording = () ->
     if segment_storage?
         segment_storage.purgeAll()
     map.off('locationfound', handle_locationevent)
+
+    window.powerManagement?.releaseWakeLock() ->
+        wakelocked = false
 
 if get_settings().recordandpublish
     # Start recording at init.
