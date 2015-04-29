@@ -14,6 +14,7 @@ transform_itinerary_to_linestring = (itinerary, coordinate_scale = 1e-5) ->
     geometry:
         type: 'LineString'
         coordinates: coordinates
+    properties: {}
 
 transform_locationevent_to_fix = (locationevent) ->
     latlng = locationevent.latlng
